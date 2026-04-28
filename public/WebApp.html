@@ -1,0 +1,770 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AR Smart Meal Planner</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/Main.css" />
+  </head>
+  <body>
+    <div class="toast" id="toast"></div>
+
+    <!-- ══════════════════════════════════════════ AUTH ══ -->
+    <div id="auth-wrapper">
+      <div class="auth-screen active" id="login-screen">
+        <div class="auth-bg-orb orb1"></div>
+        <div class="auth-bg-orb orb2"></div>
+        <div class="auth-inner">
+          <div class="auth-logo">SmartMeal</div>
+          <div class="auth-tagline">AI-Powered Nutrition Planner</div>
+          <div class="auth-card">
+            <h2 class="auth-title">Selamat Datang 👋</h2>
+            <p class="auth-sub">
+              Login untuk melanjutkan perjalanan nutrisimu.
+            </p>
+            <div class="form-group">
+              <label class="form-label">Username atau Email</label>
+              <input
+                class="form-input"
+                id="login-identifier"
+                type="text"
+                placeholder="Masukkan username / email"
+              />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Password</label>
+              <div class="input-pw-wrap">
+                <input
+                  class="form-input"
+                  id="login-password"
+                  type="password"
+                  placeholder="Masukkan password"
+                  onkeydown="if (event.key === 'Enter') doLogin();"
+                />
+                <button
+                  class="pw-toggle"
+                  onclick="togglePw('login-password', this)"
+                >
+                  👁️
+                </button>
+              </div>
+            </div>
+            <button
+              class="btn btn-primary"
+              style="width: 100%; margin-top: 4px"
+              onclick="doLogin()"
+            >
+              Masuk →
+            </button>
+            <div class="auth-switch">
+              Belum punya akun?
+              <span onclick="showAuth('register-screen')">Daftar sekarang</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="auth-screen" id="register-screen">
+        <div class="auth-bg-orb orb1"></div>
+        <div class="auth-bg-orb orb2"></div>
+        <div class="auth-inner">
+          <div class="auth-logo">SmartMeal</div>
+          <div class="auth-card">
+            <h2 class="auth-title">Daftar Akun ✨</h2>
+            <p class="auth-sub">
+              Mulai perjalanan nutrisi personalmu hari ini.
+            </p>
+            <div class="form-group">
+              <label class="form-label">Username</label>
+              <input
+                class="form-input"
+                id="reg-username"
+                type="text"
+                placeholder="Pilih username unikmu"
+              />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <input
+                class="form-input"
+                id="reg-email"
+                type="email"
+                placeholder="email@kamu.com"
+              />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Password</label>
+              <div class="input-pw-wrap">
+                <input
+                  class="form-input"
+                  id="reg-password"
+                  type="password"
+                  placeholder="Min. 6 karakter"
+                />
+                <button
+                  class="pw-toggle"
+                  onclick="togglePw('reg-password', this)"
+                >
+                  👁️
+                </button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Konfirmasi Password</label>
+              <div class="input-pw-wrap">
+                <input
+                  class="form-input"
+                  id="reg-confirm"
+                  type="password"
+                  placeholder="Ulangi password"
+                  onkeydown="if (event.key === 'Enter') doRegister();"
+                />
+                <button
+                  class="pw-toggle"
+                  onclick="togglePw('reg-confirm', this)"
+                >
+                  👁️
+                </button>
+              </div>
+            </div>
+            <button
+              class="btn btn-primary"
+              style="width: 100%; margin-top: 4px"
+              onclick="doRegister()"
+            >
+              Buat Akun →
+            </button>
+            <div class="auth-switch">
+              Sudah punya akun?
+              <span onclick="showAuth('login-screen')">Login di sini</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════ APP ══ -->
+    <div id="app-wrapper" style="display: none">
+      <section class="section active" id="home-section">
+        <div class="topbar">
+          <div class="logo">SmartMeal</div>
+          <div class="topbar-right">
+            <div class="topbar-greeting" id="topbar-greeting"></div>
+            <div
+              class="topbar-avatar"
+              id="topbar-avatar"
+              onclick="switchTab('profile')"
+            >
+              👤
+            </div>
+          </div>
+        </div>
+        <div class="content">
+          <div id="home-step1">
+            <div class="hero-badge">
+              <div class="pulse-dot"></div>
+              AI-Powered Nutrition
+            </div>
+            <h1>Rancang <span class="grad-text">Pola Makan</span> Idealmu</h1>
+            <p class="sub">
+              Pilih tujuan dan dapatkan rekomendasi makanan personal dengan
+              visualisasi AR.
+            </p>
+            <div class="step-indicator">
+              <div class="step-dot active" id="dot1"></div>
+              <div class="step-dot" id="dot2"></div>
+            </div>
+            <div class="step-label">Langkah 1 — Pilih Tujuan</div>
+            <div class="choice-grid" id="goal-grid">
+              <div class="choice-card" onclick="selectGoal('diet', this)">
+                <div class="check-badge">✓</div>
+                <span class="choice-icon">🥗</span>
+                <div class="choice-label">Diet</div>
+                <div class="choice-desc">Defisit kalori</div>
+              </div>
+              <div class="choice-card" onclick="selectGoal('healthy', this)">
+                <div class="check-badge">✓</div>
+                <span class="choice-icon">💚</span>
+                <div class="choice-label">Healthy</div>
+                <div class="choice-desc">Pola seimbang</div>
+              </div>
+              <div class="choice-card" onclick="selectGoal('bulking', this)">
+                <div class="check-badge">✓</div>
+                <span class="choice-icon">💪</span>
+                <div class="choice-label">Bulking</div>
+                <div class="choice-desc">Surplus kalori</div>
+              </div>
+            </div>
+            <button
+              class="btn btn-primary"
+              id="next-step1"
+              disabled
+              onclick="goToStep2()"
+            >
+              Lanjut <span>→</span>
+            </button>
+          </div>
+          <div id="home-step2" style="display: none" class="slide-up">
+            <div class="step-indicator">
+              <div class="step-dot done"></div>
+              <div class="step-dot active"></div>
+            </div>
+            <div class="step-label">Langkah 2 — Waktu Makan</div>
+            <h2>Pilih Waktu Makan</h2>
+            <p class="sub">
+              Rekomendasi akan disesuaikan dengan waktu makan pilihanmu.
+            </p>
+            <div class="choice-grid" id="meal-grid">
+              <div class="choice-card" onclick="selectMeal('sarapan', this)">
+                <div class="check-badge">✓</div>
+                <span class="choice-icon">🌅</span>
+                <div class="choice-label">Sarapan</div>
+                <div class="choice-desc">25% kalori harian</div>
+              </div>
+              <div class="choice-card" onclick="selectMeal('siang', this)">
+                <div class="check-badge">✓</div>
+                <span class="choice-icon">☀️</span>
+                <div class="choice-label">Makan Siang</div>
+                <div class="choice-desc">40% kalori harian</div>
+              </div>
+              <div class="choice-card" onclick="selectMeal('malam', this)">
+                <div class="check-badge">✓</div>
+                <span class="choice-icon">🌙</span>
+                <div class="choice-label">Makan Malam</div>
+                <div class="choice-desc">35% kalori harian</div>
+              </div>
+            </div>
+            <div class="btn-row">
+              <button class="btn btn-ghost" onclick="backToStep1()">
+                ← Kembali
+              </button>
+              <button
+                class="btn btn-primary"
+                id="next-step2"
+                disabled
+                onclick="goToInput()"
+              >
+                Lanjut <span>→</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="input-section">
+        <div class="topbar">
+          <div class="logo">SmartMeal</div>
+          <div class="breadcrumb" id="input-breadcrumb"></div>
+        </div>
+        <div class="content">
+          <h1>Data <span class="grad-text">Tubuhmu</span></h1>
+          <p class="sub">
+            Masukkan data untuk menghitung kebutuhan kalori harian yang tepat.
+          </p>
+          <div class="form-group">
+            <label class="form-label">Berat Badan (kg)</label
+            ><input
+              class="form-input"
+              type="number"
+              id="weight"
+              placeholder="Contoh: 65"
+              min="30"
+              max="200"
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tinggi Badan (cm)</label
+            ><input
+              class="form-input"
+              type="number"
+              id="height"
+              placeholder="Contoh: 170"
+              min="100"
+              max="250"
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Usia (tahun)</label
+            ><input
+              class="form-input"
+              type="number"
+              id="age"
+              placeholder="Contoh: 25"
+              min="10"
+              max="100"
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Gender</label>
+            <div class="radio-group">
+              <div
+                class="radio-btn"
+                id="radio-pria"
+                onclick="selectGender('pria')"
+              >
+                👨 Pria
+              </div>
+              <div
+                class="radio-btn"
+                id="radio-wanita"
+                onclick="selectGender('wanita')"
+              >
+                👩 Wanita
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tingkat Aktivitas</label>
+            <div class="radio-group" style="flex-wrap: wrap">
+              <div
+                class="radio-btn"
+                id="radio-ringan"
+                onclick="selectActivity('ringan')"
+              >
+                🧘 Ringan
+              </div>
+              <div
+                class="radio-btn"
+                id="radio-sedang"
+                onclick="selectActivity('sedang')"
+              >
+                🚶 Sedang
+              </div>
+              <div
+                class="radio-btn"
+                id="radio-berat"
+                onclick="selectActivity('berat')"
+              >
+                🏋️ Berat
+              </div>
+            </div>
+          </div>
+          <div class="btn-row">
+            <button
+              class="btn btn-ghost"
+              onclick="navigate('home-section', 'input-section')"
+            >
+              ← Kembali
+            </button>
+            <button class="btn btn-primary" onclick="confirmInput()">
+              Hitung Kalori ✨
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="loading-section">
+        <div class="loading-center">
+          <div class="spinner-wrap">
+            <div class="spinner-ring"></div>
+            <div class="spinner-ring"></div>
+            <div class="spinner-ring"></div>
+            <div class="spinner-icon">🧠</div>
+          </div>
+          <div class="loading-text">
+            Calculating your nutrition<span class="loading-dots"></span>
+          </div>
+          <div class="loading-sub">Sedang menganalisis kebutuhanmu</div>
+        </div>
+      </section>
+
+      <section class="section" id="result-section">
+        <div class="topbar">
+          <div class="logo">SmartMeal</div>
+          <div class="breadcrumb" id="result-breadcrumb"></div>
+        </div>
+        <div class="content wide">
+          <h1 style="margin-bottom: 4px">
+            Hasil Analisis <span class="grad-text">Nutrisi</span>
+          </h1>
+          <p class="sub" id="result-sub"></p>
+          <div class="calorie-cards" id="calorie-cards"></div>
+          <div class="target-banner" id="target-banner"></div>
+          <div id="reason-box-result"></div>
+          <div class="section-title">
+            <span>Rekomendasi Makanan</span
+            ><span class="badge" id="food-count-badge"></span>
+          </div>
+          <div class="food-grid" id="food-grid"></div>
+          <div class="btn-row">
+            <button
+              class="btn btn-ghost"
+              onclick="navigate('input-section', 'result-section')"
+            >
+              ← Kembali Input
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="detail-section">
+        <div class="topbar">
+          <div class="logo">SmartMeal</div>
+          <div class="breadcrumb" id="detail-breadcrumb"></div>
+        </div>
+        <div class="content">
+          <div class="ar-viewport" id="ar-viewport">
+            <video id="ar-video" autoplay playsinline muted></video>
+            <div class="ar-overlay" id="ar-overlay">
+              <img id="ar-food-img" src="" alt="" draggable="false" />
+              <div class="ar-label" id="ar-label1"></div>
+              <div class="ar-label" id="ar-label2"></div>
+              <div class="ar-label" id="ar-label3"></div>
+            </div>
+            <div class="camera-off" id="camera-off">
+              <div class="camera-off-icon">📷</div>
+              <div class="camera-off-text">
+                Aktifkan kamera untuk<br />melihat simulasi AR
+              </div>
+              <button class="btn-cam" onclick="startCamera()">
+                Buka Kamera
+              </button>
+            </div>
+            <div class="ar-hint">🤚 Drag untuk putar • Scroll untuk zoom</div>
+          </div>
+          <div class="detail-info" id="detail-info">
+            <div class="detail-name" id="detail-name"></div>
+            <div class="detail-cal-big" id="detail-cal-big"></div>
+            <div class="macro-grid" id="macro-grid"></div>
+            <div class="progress-macro" id="macro-progress"></div>
+            <div class="reason-box" id="detail-reason"></div>
+            <div class="detail-desc" id="detail-desc"></div>
+            <div class="btn-row">
+              <button
+                class="btn btn-ghost"
+                onclick="navigate('result-section', 'detail-section')"
+              >
+                ← Kembali
+              </button>
+              <button class="btn btn-primary" onclick="startCamera()">
+                📷 Buka AR
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section chatbot" id="chat-section">
+        <div class="topbar">
+          <div class="logo">SmartMeal</div>
+          <div class="breadcrumb">AI Assistant</div>
+        </div>
+        <div class="chat-wrapper">
+          <div class="chat-header">
+            <div class="chat-avatar-wrap">
+              <div class="chat-bot-avatar">🧠</div>
+              <div class="chat-online-dot"></div>
+            </div>
+            <div class="chat-header-info">
+              <div class="chat-header-name">NutriBot AI</div>
+              <div class="chat-header-status">
+                Online · Powered by Groq AI
+              </div>
+            </div>
+            <button
+              class="chat-clear-btn"
+              onclick="clearChat()"
+              title="Hapus chat"
+            >
+              🗑️
+            </button>
+          </div>
+          <div class="chat-messages" id="chat-messages"></div>
+          <div class="chat-suggestions" id="chat-suggestions">
+            <button class="chat-chip" onclick="sendChip(this)">
+              Tips diet sehat 🥗
+            </button>
+            <button class="chat-chip" onclick="sendChip(this)">
+              Makanan tinggi protein 💪
+            </button>
+            <button class="chat-chip" onclick="sendChip(this)">
+              Sarapan ideal 🌅
+            </button>
+            <button class="chat-chip" onclick="sendChip(this)">
+              Minuman sehat 💧
+            </button>
+          </div>
+          <div class="chat-input-bar">
+            <input
+              class="chat-input"
+              id="chat-input"
+              type="text"
+              placeholder="Tanya apa saja soal nutrisi..."
+              onkeydown="if (event.key === 'Enter') sendChat();"
+            />
+            <button
+              class="chat-send-btn"
+              id="chat-send-btn"
+              onclick="sendChat()"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M22 2L11 13"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                />
+                <path
+                  d="M22 2L15 22L11 13L2 9L22 2Z"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="profile-section">
+        <div class="topbar">
+          <div class="logo">SmartMeal</div>
+          <div class="breadcrumb">Profile</div>
+        </div>
+        <div class="content" id="profile-main-view">
+          <div class="profile-hero">
+            <div class="profile-avatar-wrap">
+              <div class="profile-avatar" id="profile-avatar-display">👤</div>
+              <div class="profile-avatar-badge">✏️</div>
+            </div>
+            <div class="profile-username" id="profile-username-display">-</div>
+            <div class="profile-email-display" id="profile-email-display">
+              -
+            </div>
+            <div class="profile-tag">
+              <div
+                class="pulse-dot"
+                style="width: 6px; height: 6px; background: var(--accent)"
+              ></div>
+              Member SmartMeal
+            </div>
+          </div>
+          <div class="profile-menu-list">
+            <div class="profile-menu-group-label">Akun</div>
+            <div
+              class="profile-menu-item"
+              onclick="showProfileSub('info-akun')"
+            >
+              <div class="profile-menu-icon">🪪</div>
+              <div class="profile-menu-text">
+                <div class="profile-menu-title">Informasi Akun</div>
+                <div class="profile-menu-desc">Email, username, password</div>
+              </div>
+              <div class="profile-menu-arrow">›</div>
+            </div>
+            <div
+              class="profile-menu-item"
+              onclick="showProfileSub('edit-profile')"
+            >
+              <div class="profile-menu-icon">✏️</div>
+              <div class="profile-menu-text">
+                <div class="profile-menu-title">Edit Profile</div>
+                <div class="profile-menu-desc">Ubah nama, email & avatar</div>
+              </div>
+              <div class="profile-menu-arrow">›</div>
+            </div>
+            <div class="profile-menu-group-label" style="margin-top: 20px">
+              Aktivitas
+            </div>
+            <div class="profile-menu-item" onclick="showProfileSub('riwayat')">
+              <div class="profile-menu-icon">📋</div>
+              <div class="profile-menu-text">
+                <div class="profile-menu-title">Log / Riwayat</div>
+                <div class="profile-menu-desc">
+                  Hasil kalkulasi & makanan dilihat
+                </div>
+              </div>
+              <div class="profile-menu-arrow">›</div>
+            </div>
+            <div class="profile-menu-group-label" style="margin-top: 20px">
+              Lainnya
+            </div>
+            <div class="profile-menu-item danger" onclick="confirmLogout()">
+              <div class="profile-menu-icon">🚪</div>
+              <div class="profile-menu-text">
+                <div class="profile-menu-title" style="color: #ff6b6b">
+                  Logout
+                </div>
+                <div class="profile-menu-desc">Keluar dari akun</div>
+              </div>
+              <div class="profile-menu-arrow" style="color: #ff6b6b">›</div>
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="content profile-sub-view"
+          id="sub-info-akun"
+          style="display: none"
+        >
+          <div class="sub-back" onclick="hideProfileSub()">← Kembali</div>
+          <h2>Informasi Akun</h2>
+          <div class="info-akun-card">
+            <div class="info-akun-row">
+              <div class="info-akun-label">👤 Username</div>
+              <div class="info-akun-val" id="info-username">-</div>
+            </div>
+            <div class="info-akun-row">
+              <div class="info-akun-label">📧 Email</div>
+              <div class="info-akun-val" id="info-email">-</div>
+            </div>
+            <div class="info-akun-row">
+              <div class="info-akun-label">🔐 Password</div>
+              <div class="info-akun-val">••••••••</div>
+            </div>
+            <div class="info-akun-row">
+              <div class="info-akun-label">📅 Bergabung</div>
+              <div class="info-akun-val" id="info-joined">-</div>
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="content profile-sub-view"
+          id="sub-edit-profile"
+          style="display: none"
+        >
+          <div class="sub-back" onclick="hideProfileSub()">← Kembali</div>
+          <h2>Edit Profile</h2>
+          <div style="text-align: center; margin-bottom: 24px">
+            <div class="profile-avatar edit-avatar" id="edit-avatar-preview">
+              👤
+            </div>
+            <div
+              style="font-size: 12px; color: var(--text-muted); margin-top: 8px"
+            >
+              Pilih avatar emoji
+            </div>
+            <div class="emoji-picker">
+              <span onclick="pickEmoji('👤')">👤</span
+              ><span onclick="pickEmoji('👨')">👨</span>
+              <span onclick="pickEmoji('👩')">👩</span
+              ><span onclick="pickEmoji('🧑‍💻')">🧑‍💻</span>
+              <span onclick="pickEmoji('🧑‍🍳')">🧑‍🍳</span
+              ><span onclick="pickEmoji('🦸')">🦸</span>
+              <span onclick="pickEmoji('🧘')">🧘</span
+              ><span onclick="pickEmoji('🏃')">🏃</span>
+              <span onclick="pickEmoji('🥷')">🥷</span
+              ><span onclick="pickEmoji('🧙')">🧙</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Username</label
+            ><input
+              class="form-input"
+              id="edit-username"
+              type="text"
+              placeholder="Username baru"
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email</label
+            ><input
+              class="form-input"
+              id="edit-email"
+              type="email"
+              placeholder="Email baru"
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label"
+              >Password Baru (kosongkan jika tidak diubah)</label
+            >
+            <div class="input-pw-wrap">
+              <input
+                class="form-input"
+                id="edit-password"
+                type="password"
+                placeholder="Password baru (opsional)"
+              />
+              <button
+                class="pw-toggle"
+                onclick="togglePw('edit-password', this)"
+              >
+                👁️
+              </button>
+            </div>
+          </div>
+          <button
+            class="btn btn-primary"
+            style="width: 100%; margin-top: 8px"
+            onclick="saveProfile()"
+          >
+            Simpan Perubahan ✓
+          </button>
+        </div>
+
+        <div
+          class="content profile-sub-view"
+          id="sub-riwayat"
+          style="display: none"
+        >
+          <div class="sub-back" onclick="hideProfileSub()">← Kembali</div>
+          <h2>Log / Riwayat</h2>
+          <p class="sub">
+            Riwayat kalkulasi kalori dan makanan yang pernah dilihat.
+          </p>
+          <div id="riwayat-list" class="riwayat-list"></div>
+        </div>
+      </section>
+
+      <div class="modal-overlay" id="logout-modal" style="display: none">
+        <div class="modal-box">
+          <div class="modal-icon">🚪</div>
+          <div class="modal-title">Keluar dari akun?</div>
+          <div class="modal-desc">
+            Semua data tersimpan dan bisa diakses saat login lagi.
+          </div>
+          <div class="modal-btns">
+            <button
+              class="btn btn-ghost"
+              onclick="
+                document.getElementById('logout-modal').style.display = 'none'
+              "
+            >
+              Batal
+            </button>
+            <button
+              class="btn btn-primary"
+              style="
+                background: linear-gradient(135deg, #ff6b6b, #ff4757);
+                box-shadow: none;
+              "
+              onclick="doLogout()"
+            >
+              Logout
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <nav class="bottom-nav" id="bottom-nav">
+        <button
+          class="nav-item active"
+          id="nav-home"
+          onclick="switchTab('home')"
+        >
+          <span class="nav-icon">🏠</span><span class="nav-label">Home</span>
+        </button>
+        <button class="nav-item" id="nav-chat" onclick="switchTab('chat')">
+          <span class="nav-icon">💬</span><span class="nav-label">Chatbot</span>
+        </button>
+        <button
+          class="nav-item"
+          id="nav-profile"
+          onclick="switchTab('profile')"
+        >
+          <span class="nav-icon" id="nav-profile-icon">👤</span
+          ><span class="nav-label">Profile</span>
+        </button>
+      </nav>
+    </div>
+
+    <script src="js/Main.js"></script>
+  </body>
+</html>

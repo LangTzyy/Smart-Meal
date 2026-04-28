@@ -1,0 +1,275 @@
+<!-- 
+  chatbot.js — Tambahkan script ini ke project AR kamu
+  Pastikan server.js sudah berjalan di localhost:3000
+-->
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <title>AR Chatbot — Contoh Integrasi</title>
+  <style>
+    /* ===== CHATBOT WIDGET ===== */
+    #chatbot-toggle {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: #1a73e8;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+      z-index: 9999;
+      transition: transform 0.2s;
+    }
+    #chatbot-toggle:hover { transform: scale(1.08); }
+    #chatbot-toggle svg { width: 28px; height: 28px; fill: white; }
+
+    #chatbot-window {
+      position: fixed;
+      bottom: 90px;
+      right: 24px;
+      width: 340px;
+      height: 480px;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+      display: flex;
+      flex-direction: column;
+      z-index: 9998;
+      overflow: hidden;
+      transition: opacity 0.2s, transform 0.2s;
+    }
+    #chatbot-window.hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(16px);
+    }
+
+    #chat-header {
+      background: #1a73e8;
+      color: white;
+      padding: 14px 18px;
+      font-family: sans-serif;
+      font-weight: 600;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    #chat-header span { font-size: 20px; }
+
+    #chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      font-family: sans-serif;
+      font-size: 14px;
+    }
+
+    .msg {
+      max-width: 85%;
+      padding: 10px 13px;
+      border-radius: 12px;
+      line-height: 1.5;
+      word-break: break-word;
+    }
+    .msg.bot {
+      background: #f1f3f4;
+      color: #202124;
+      align-self: flex-start;
+      border-bottom-left-radius: 4px;
+    }
+    .msg.user {
+      background: #1a73e8;
+      color: white;
+      align-self: flex-end;
+      border-bottom-right-radius: 4px;
+    }
+    .msg.loading { color: #888; font-style: italic; }
+
+    #chat-input-area {
+      padding: 12px;
+      border-top: 1px solid #e8e8e8;
+      display: flex;
+      gap: 8px;
+    }
+    #chat-input {
+      flex: 1;
+      border: 1px solid #dadce0;
+      border-radius: 20px;
+      padding: 8px 14px;
+      font-size: 14px;
+      outline: none;
+      font-family: sans-serif;
+    }
+    #chat-input:focus { border-color: #1a73e8; }
+    #chat-send {
+      background: #1a73e8;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    #chat-send:hover { background: #1557b0; }
+    #chat-send:disabled { background: #ccc; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+
+  <!-- Tombol buka/tutup chatbot -->
+  <button id="chatbot-toggle" title="Buka Chatbot AR">
+    <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+  </button>
+
+  <!-- Jendela chatbot -->
+  <div id="chatbot-window" class="hidden">
+    <div id="chat-header">
+      <span>🥽</span> AR Assistant
+    </div>
+    <div id="chat-messages">
+      <div class="msg bot">Halo! Saya asisten AR-mu. Ada yang ingin kamu tanyakan tentang konten AR ini? 😊</div>
+    </div>
+    <div id="chat-input-area">
+      <input id="chat-input" type="text" placeholder="Tulis pesanmu..." autocomplete="off" />
+      <button id="chat-send">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // ============================================================
+    // KONFIGURASI — Sesuaikan dengan project AR-mu
+    // ============================================================
+    const BACKEND_URL = "http://localhost:3000"; // URL backend kamu
+    const SYSTEM_PROMPT = `Kamu adalah asisten AR (Augmented Reality) yang membantu pengguna 
+    memahami dan berinteraksi dengan konten AR. Jawab dengan singkat, ramah, dan jelas dalam bahasa Indonesia.
+    Jika ada pertanyaan tentang cara menggunakan fitur AR, bantu dengan panduan langkah per langkah.`;
+
+    // ============================================================
+    // STATE
+    // ============================================================
+    const conversationHistory = []; // Menyimpan riwayat chat
+    let isLoading = false;
+
+    // ============================================================
+    // DOM ELEMENTS
+    // ============================================================
+    const toggleBtn = document.getElementById("chatbot-toggle");
+    const chatWindow = document.getElementById("chatbot-window");
+    const messagesDiv = document.getElementById("chat-messages");
+    const chatInput = document.getElementById("chat-input");
+    const sendBtn = document.getElementById("chat-send");
+
+    // ============================================================
+    // TOGGLE WINDOW
+    // ============================================================
+    toggleBtn.addEventListener("click", () => {
+      chatWindow.classList.toggle("hidden");
+      if (!chatWindow.classList.contains("hidden")) {
+        chatInput.focus();
+      }
+    });
+
+    // ============================================================
+    // KIRIM PESAN
+    // ============================================================
+    async function sendMessage() {
+      const userText = chatInput.value.trim();
+      if (!userText || isLoading) return;
+
+      // Tampilkan pesan user
+      appendMessage(userText, "user");
+      chatInput.value = "";
+      isLoading = true;
+      sendBtn.disabled = true;
+
+      // Tambahkan ke history
+      conversationHistory.push({ role: "user", content: userText });
+
+      // Tampilkan loading
+      const loadingEl = appendMessage("Sedang mengetik...", "bot loading");
+
+      try {
+        // Panggil backend
+        const response = await fetch(`${BACKEND_URL}/chat`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            messages: conversationHistory,
+            systemPrompt: SYSTEM_PROMPT,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Server error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const botReply = data.content;
+
+        // Hapus loading, tampilkan respons
+        loadingEl.remove();
+        appendMessage(botReply, "bot");
+
+        // Simpan ke history
+        conversationHistory.push({ role: "assistant", content: botReply });
+
+        // Batasi history (agar tidak terlalu panjang)
+        if (conversationHistory.length > 20) {
+          conversationHistory.splice(0, 2);
+        }
+
+      } catch (error) {
+        loadingEl.remove();
+        appendMessage("Maaf, terjadi kesalahan. Coba lagi ya! (" + error.message + ")", "bot");
+        console.error("Chat error:", error);
+        // Hapus pesan terakhir dari history jika gagal
+        conversationHistory.pop();
+      } finally {
+        isLoading = false;
+        sendBtn.disabled = false;
+        chatInput.focus();
+      }
+    }
+
+    // ============================================================
+    // HELPER: Tambah pesan ke UI
+    // ============================================================
+    function appendMessage(text, type) {
+      const el = document.createElement("div");
+      el.className = `msg ${type}`;
+      el.textContent = text;
+      messagesDiv.appendChild(el);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      return el;
+    }
+
+    // ============================================================
+    // EVENT LISTENERS
+    // ============================================================
+    sendBtn.addEventListener("click", sendMessage);
+    chatInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+  </script>
+</body>
+</html>
