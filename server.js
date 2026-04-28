@@ -15,45 +15,28 @@ app.use(express.static("public"));
 
 app.post("/chat", async (req, res) => {
   try {
-    const { messages, systemPrompt } = req.body;
+    const { messages } = req.body;
 
     if (!messages || !Array.isArray(messages)) {
       return res.status(400).json({ error: "messages harus berupa array" });
     }
 
-    const systemPrompt = `Kamu adalah NutriBot AI, asisten nutrisi cerdas untuk aplikasi SmartMeal.
-      Jawab dalam Bahasa Indonesia dengan gaya ramah, informatif, dan to the point.
-      Fokus pada topik: nutrisi, makanan, kalori, diet, kesehatan, olahraga, meal plan.
-      Jika pertanyaan tidak relevan, tetap jawab singkat lalu arahkan ke topik nutrisi.
+    const systemText = `Kamu adalah NutriBot AI, asisten nutrisi cerdas untuk aplikasi SmartMeal.
+Jawab dalam Bahasa Indonesia dengan gaya ramah, informatif, dan to the point.
+Fokus pada topik: nutrisi, makanan, kalori, diet, kesehatan, olahraga, meal plan.
+Jika pertanyaan tidak relevan, tetap jawab singkat lalu arahkan ke topik nutrisi.
 
-      ATURAN FORMAT JAWABAN:
-      - Gunakan teks tebal untuk judul dengan format <b>Judul</b>
-      - Gunakan tanda (-) untuk setiap poin
-      - Gunakan baris kosong sebagai pemisah antar bagian
-      - Maksimal 5 poin per bagian
-      - Jangan gunakan tanda # atau * sama sekali
-      - Jangan tulis dalam paragraf panjang
+ATURAN FORMAT — WAJIB DIIKUTI, TIDAK BOLEH DILANGGAR:
+- DILARANG menggunakan tanda # untuk judul
+- DILARANG menggunakan tanda * atau ** untuk apapun
+- DILARANG menggunakan markdown apapun
 
-      CONTOH FORMAT YANG BENAR:
-
-      <b>Manfaat Protein</b>
-
-      Protein adalah nutrisi penting yang dibutuhkan tubuh setiap hari.
-
-      <b>Manfaat Utama</b>
-
-      - Membangun dan memperbaiki jaringan otot
-      - Membuat kenyang lebih lama
-      - Meningkatkan metabolisme tubuh
-      - Menjaga kesehatan tulang dan kulit
-
-      <b>Sumber Protein Terbaik</b>
-
-      - Dada ayam, telur, ikan
-      - Tahu, tempe, kacang-kacangan
-      - Greek yogurt, susu rendah lemak
-
-      Konsumsi protein yang disarankan adalah 0,8 hingga 1,2 gram per kilogram berat badan per hari.`;
+GUNAKAN FORMAT INI SAJA:
+- Tulis judul dengan huruf kapital semua, contoh: MANFAAT PROTEIN
+- Gunakan tanda (-) untuk setiap poin
+- Gunakan baris kosong untuk memisahkan antar bagian
+- Maksimal 5 poin per bagian
+- Singkat dan jelas, tidak bertele-tele`;
 
     const chatMessages = [
       { role: "system", content: systemText },
@@ -61,7 +44,7 @@ app.post("/chat", async (req, res) => {
     ];
 
     const response = await groq.chat.completions.create({
-      model: "llama-3.1-8b-instant", // Gratis, cepat, limit besar
+      model: "llama-3.1-8b-instant",
       max_tokens: 1024,
       messages: chatMessages,
     });
