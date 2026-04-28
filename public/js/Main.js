@@ -1250,7 +1250,7 @@ function removeTypingIndicator() {
 
 // ─── KONFIGURASI BACKEND ──────────────────────────────────────
 // Ganti URL ini jika backend kamu berjalan di port/host berbeda
-const BACKEND_URL = "http://localhost:3000";
+const BACKEND_URL = "https://smart-meal-production.up.railway.app";
 
 async function sendChat() {
   if (isBotTyping) return;
