@@ -2246,3 +2246,55 @@ h2 {
     grid-template-columns: repeat(4, 1fr);
   }
 }
+
+/* ─── AR LABELS OVERLAY (tampil saat AR aktif) ─── */
+.ar-labels-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 20;
+}
+
+/* Samakan dengan .ar-label asli */
+.ar-label-ar {
+  position: absolute;
+  background: rgba(0, 229, 160, 0.9);
+  color: #000;
+  font-family: "Syne", sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 5px 10px;
+  border-radius: 20px;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 12px rgba(0, 229, 160, 0.5);
+  animation: floatY 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Posisi label 1 - sama dengan :nth-child(2) */
+#ar-label-ar1 {
+  top: 20%;
+  right: 10%;
+  animation-delay: 0.3s;
+}
+
+/* Posisi label 2 - sama dengan :nth-child(3) */
+#ar-label-ar2 {
+  top: 60%;
+  left: 8%;
+  animation-delay: 0.8s;
+  background: rgba(0, 180, 245, 0.9);
+  box-shadow: 0 2px 12px rgba(0, 180, 245, 0.5);
+}
+
+/* Posisi label 3 - sama dengan :nth-child(4) */
+#ar-label-ar3 {
+  bottom: 15%;
+  right: 12%;
+  animation-delay: 1.3s;
+  background: rgba(255, 107, 107, 0.9);
+  box-shadow: 0 2px 12px rgba(255, 107, 107, 0.5);
+}

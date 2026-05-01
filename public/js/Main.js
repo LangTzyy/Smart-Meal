@@ -6,16 +6,16 @@
 // ─── FOOD DATA ────────────────────────────────────────────────
 const foodData = [
   {
-    name: "Oatmeal dengan Buah Beri",
-    calories: 280,
-    protein: 10,
-    fat: 5,
-    carbs: 48,
+    name: "Bubur Ayam",
+    calories: 300,
+    protein: 12,
+    fat: 8,
+    carbs: 45,
     type: "diet",
     meal: "sarapan",
-    img: "https://images.unsplash.com/photo-1517093157656-b9eccef91cb1?w=400&q=80",
-    desc: "Oatmeal hangat dengan campuran blueberry, strawberry, dan madu alami. Kaya serat untuk membuatmu kenyang lebih lama.",
-    labels: ["High Fiber", "Low Calorie", "Recommended"],
+    img: "https://thumbs.dreamstime.com/b/bubur-ayam-indonesian-chicken-congee-bowl-bubur-ayam-popular-indonesian-rice-congee-presented-white-background-416167153.jpg",
+    desc: "Bubur nasi lembut dengan suwiran ayam, dilengkapi daun bawang, bawang goreng, dan kerupuk. Cocok sebagai sarapan hangat yang ringan dan mudah dicerna.",
+    labels: ["Light Meal", "Easy to Digest", "Breakfast"],
   },
   {
     name: "Smoothie Hijau Bayam",
@@ -42,16 +42,16 @@ const foodData = [
     labels: ["High Protein", "Healthy Fat", "Clean Eat"],
   },
   {
-    name: "Greek Yogurt & Granola",
-    calories: 260,
-    protein: 15,
-    fat: 6,
-    carbs: 36,
+    name: "Yogurt",
+    calories: 180,
+    protein: 12,
+    fat: 5,
+    carbs: 22,
     type: "diet",
     meal: "sarapan",
-    img: "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=400&q=80",
-    desc: "Greek yogurt rendah lemak dengan granola renyah dan madu. Tinggi protein dan probiotik.",
-    labels: ["High Protein", "Probiotic", "Low Calorie"],
+    img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSvI9syG5WqxA-VORsyQJs5bZ84PjiT7UqdLA&s",
+    desc: "Yogurt creamy kaya protein, kalsium, dan probiotik yang baik untuk pencernaan. Cocok sebagai sarapan praktis atau camilan sehat.",
+    labels: ["High Protein", "Probiotic", "Healthy"],
   },
   {
     name: "Salad Ayam Panggang",
@@ -73,7 +73,7 @@ const foodData = [
     carbs: 52,
     type: "diet",
     meal: "siang",
-    img: "https://images.unsplash.com/photo-1547592166-23ac45744acd?w=400&q=80",
+    img: "https://png.pngtree.com/png-vector/20260212/ourmid/pngtree-hearty-lentil-soup-in-white-bowl-png-image_18632517.webp",
     desc: "Sup hangat dengan lentil merah, wortel, seledri, dan rempah-rempah aromatik.",
     labels: ["Plant Protein", "High Fiber", "Warm"],
   },
@@ -90,28 +90,28 @@ const foodData = [
     labels: ["Omega-3", "High Protein", "Filling"],
   },
   {
-    name: "Nasi Merah Ikan Bakar",
+    name: "Gado Gado",
     calories: 450,
-    protein: 30,
-    fat: 8,
-    carbs: 62,
+    protein: 18,
+    fat: 18,
+    carbs: 50,
     type: "diet",
     meal: "siang",
-    img: "https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=400&q=80",
-    desc: "Nasi merah bergizi dengan ikan kakap bakar berbumbu, lalapan segar, dan sambal tomat.",
-    labels: ["Balanced", "Low Fat", "Indonesian"],
+    img: "https://png.pngtree.com/png-vector/20250706/ourlarge/pngtree-traditional-indonesian-gado-gado-with-peanut-sauce-png-image_16705806.webp",
+    desc: "Campuran sayuran segar seperti kangkung, tauge, kentang, tahu, dan tempe, disiram saus kacang gurih khas Indonesia. Mengenyangkan dan kaya nutrisi.",
+    labels: ["Balanced Meal", "Vegetable Rich", "Indonesian"],
   },
   {
-    name: "Tumis Brokoli Tahu",
-    calories: 290,
-    protein: 16,
-    fat: 9,
-    carbs: 32,
+    name: "Pecel Lele",
+    calories: 520,
+    protein: 28,
+    fat: 28,
+    carbs: 40,
     type: "diet",
     meal: "malam",
-    img: "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=400&q=80",
-    desc: "Tumisan brokoli segar dengan tahu putih, bawang putih, kecap rendah sodium.",
-    labels: ["Low Calorie", "Plant Based", "Light"],
+    img: "https://png.pngtree.com/png-vector/20250714/ourlarge/pngtree-pecel-lele---indonesian-fried-catfish-with-sambal-png-image_16767052.webp",
+    desc: "Lele goreng renyah disajikan dengan sambal pedas, nasi putih, dan lalapan segar seperti timun dan kemangi. Menu khas Indonesia yang gurih dan mengenyangkan.",
+    labels: ["High Protein", "Fried", "Indonesian"],
   },
   {
     name: "Sup Ayam Jahe",
@@ -145,7 +145,7 @@ const foodData = [
     carbs: 55,
     type: "healthy",
     meal: "sarapan",
-    img: "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=400&q=80",
+    img: "https://png.pngtree.com/png-vector/20260402/ourlarge/pngtree-banana-cream-pancake-stack-png-image_18979197.webp",
     desc: "Pancake fluffy dari pisang matang, oat, dan protein powder.",
     labels: ["High Protein", "Natural Sweet", "Energizing"],
   },
@@ -174,16 +174,16 @@ const foodData = [
     labels: ["Omega-3", "Balanced", "Premium"],
   },
   {
-    name: "Buddha Bowl Ayam",
-    calories: 490,
-    protein: 34,
-    fat: 14,
-    carbs: 55,
+    name: "Ayam Penyet",
+    calories: 560,
+    protein: 32,
+    fat: 30,
+    carbs: 42,
     type: "healthy",
     meal: "siang",
-    img: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400&q=80",
-    desc: "Bowl penuh warna dengan ayam panggang, quinoa, hummus, sayuran panggang, dan tahini.",
-    labels: ["Complete Nutrition", "Colorful", "Satisfying"],
+    img: "https://png.pngtree.com/png-vector/20250808/ourmid/pngtree-delicious-chicken-penyet-featuring-crispy-chicken-spicy-sambal-refreshing-cucumber-slices-png-image_16862967.webp",
+    desc: "Ayam goreng yang dipenyet dengan sambal pedas, disajikan bersama nasi putih, tahu/tempe, dan lalapan segar. Gurih, pedas, dan mengenyangkan.",
+    labels: ["High Protein", "Spicy", "Indonesian"],
   },
   {
     name: "Pasta Gandum Pesto",
@@ -193,7 +193,7 @@ const foodData = [
     carbs: 58,
     type: "healthy",
     meal: "siang",
-    img: "https://images.unsplash.com/photo-1555949258-eb67b1ef0ceb?w=400&q=80",
+    img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTD4e5HMiBkelEL8UM4dZziTMyZrVQ_m9kNTg&s",
     desc: "Pasta gandum utuh dengan saus pesto basil segar, cherry tomato, dan parmesan.",
     labels: ["Whole Grain", "Mediterranean", "Balanced"],
   },
@@ -205,7 +205,7 @@ const foodData = [
     carbs: 35,
     type: "healthy",
     meal: "malam",
-    img: "https://images.unsplash.com/photo-1532550907401-a500c9a57435?w=400&q=80",
+    img: "https://png.pngtree.com/png-clipart/20210711/original/pngtree-indonesian-grilled-chicken-png-image_6511872.jpg",
     desc: "Dada ayam panggang juicy dengan asparagus, paprika, dan ubi jalar panggang.",
     labels: ["High Protein", "Balanced", "Clean"],
   },
@@ -229,7 +229,7 @@ const foodData = [
     carbs: 68,
     type: "bulking",
     meal: "sarapan",
-    img: "https://images.unsplash.com/photo-1610970881699-44a5587cabec?w=400&q=80",
+    img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQCx2UCuCY19lIa7ywufZxyzZft59IkuHR8CQ&s",
     desc: "Smoothie padat kalori dengan whey protein, pisang, oat, selai kacang, susu murni, dan madu.",
     labels: ["High Protein", "Mass Gainer", "Power"],
   },
@@ -265,7 +265,7 @@ const foodData = [
     carbs: 88,
     type: "bulking",
     meal: "siang",
-    img: "https://images.unsplash.com/photo-1532550907401-a500c9a57435?w=400&q=80",
+    img: "https://png.pngtree.com/png-clipart/20230319/original/pngtree-fried-chicken-with-fresh-vegetables-and-rice-png-image_8995929.png",
     desc: "Ayam goreng crispy renyah dengan nasi putih pulen, sambal, lalapan, dan tempe.",
     labels: ["High Calorie", "High Protein", "Local"],
   },
@@ -318,6 +318,22 @@ const foodData = [
     labels: ["High Protein", "Omega-3", "Muscle Build"],
   },
 ];
+
+// ─── MODEL 3D MAPPING ────────────────────────────────────────
+// Tambahkan mapping nama makanan → file GLB di sini
+const foodModels = {
+  "Gado Gado": "assets/models/gado-gado.glb",
+  "Bubur Ayam": "assets/models/Bubur_Ayam.glb",
+  "Yogurt": "assets/models/yogurt.glb",
+  "Pecel Lele": "assets/models/Pecel-Lele.glb",
+  "Ayam Penyet": "assets/models/ayam_penyet.glb",
+  "Nasi Putih Ayam Goreng": "assets/models/nasi_lemak.glb",
+  "Sup Sayuran Lentil": "assets/models/Sup_Lentil.glb",
+  "Pancake Pisang Protein": "assets/models/Pancake.glb",
+  "Pasta Gandum Pesto": "assets/models/pasta.glb",
+  "Grilled Chicken & Veggies": "assets/models/Grilled_Chicken.glb",
+  "Power Smoothie Protein": "assets/models/smoothie.glb",
+};
 
 // ─── APP STATE ─────────────────────────────────────────────────
 const state = {
@@ -1036,9 +1052,27 @@ function openDetail(idx) {
       });
   }, 300);
 
+  // Reset AR state saat buka detail baru
   stopCamera();
-  document.getElementById("camera-off").style.display = "flex";
+  arActive = false;
   document.getElementById("ar-video").style.display = "none";
+  document.getElementById("ar-overlay").style.display = "flex";
+  document.getElementById("model-3d").style.display = "none";
+  document.getElementById("model-3d").removeAttribute("src");
+  document.getElementById("model-3d").src = "";
+  document.getElementById("ar-hint").textContent = "🤚 Drag untuk putar • Scroll untuk zoom";
+  // Destroy model-viewer container
+  const container = document.getElementById("model-3d-container");
+  if (container) {
+    container.innerHTML = "";
+    container.style.display = "none";
+  }
+
+  const btnToggle = document.getElementById("btn-ar-toggle");
+  if (btnToggle) {
+    btnToggle.textContent = "📷 Aktifkan AR";
+    btnToggle.style.background = "";
+  }
 
   // Save to riwayat
   addRiwayat(state.currentUser, {
@@ -1070,10 +1104,115 @@ async function startCamera() {
   }
 }
 
+let arActive = false;
+
 function stopCamera() {
   if (state.cameraStream) {
     state.cameraStream.getTracks().forEach((t) => t.stop());
     state.cameraStream = null;
+  }
+  arActive = false;
+}
+
+// ─── TOGGLE AR + MODEL 3D ─────────────────────────────────────
+async function toggleAR() {
+  const btn = document.getElementById("btn-ar-toggle");
+
+  if (!arActive) {
+    // === AKTIFKAN AR ===
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "environment" },
+        audio: false,
+      });
+      state.cameraStream = stream;
+      const vid = document.getElementById("ar-video");
+      vid.srcObject = stream;
+      vid.style.display = "block";
+
+      // Sembunyikan overlay gambar
+      document.getElementById("ar-overlay").style.display = "none";
+
+      const container = document.getElementById("model-3d-container");
+      const foodName = state.currentFood?.name;
+      const modelPath = foodModels[foodName];
+
+      if (modelPath && container) {
+        // Recreate model-viewer setiap kali agar rotate/zoom selalu aktif
+        container.innerHTML = "";
+
+        // Buat model-viewer
+        const mv = document.createElement("model-viewer");
+        mv.id = "model-3d";
+        mv.setAttribute("src", modelPath);
+        mv.setAttribute("alt", "Model 3D Makanan");
+        mv.setAttribute("auto-rotate", "");
+        mv.setAttribute("camera-controls", "");
+        mv.setAttribute("shadow-intensity", "1");
+        mv.style.cssText = "width:100%;height:100%;background:transparent;position:absolute;top:0;left:0;z-index:10;";
+        container.appendChild(mv);
+
+        // Buat label DILUAR model-viewer tapi di dalam container
+        // agar position:absolute bekerja dengan benar
+        const f = state.currentFood;
+        if (f) {
+          const labelStyles = [
+            { top: "20%",  right: "10%", delay: "0.3s",  bg: "rgba(0,229,160,0.9)",  shadow: "rgba(0,229,160,0.5)"  },
+            { top: "60%",  left:  "8%",  delay: "0.8s",  bg: "rgba(0,180,245,0.9)",  shadow: "rgba(0,180,245,0.5)"  },
+            { bottom:"15%",right: "12%", delay: "1.3s",  bg: "rgba(255,107,107,0.9)",shadow: "rgba(255,107,107,0.5)"},
+          ];
+          f.labels.forEach((label, i) => {
+            if (!label) return;
+            const el = document.createElement("div");
+            el.className = "ar-label";
+            el.textContent = label;
+            const s = labelStyles[i];
+            el.style.cssText = [
+              s.top    ? `top:${s.top};`    : "",
+              s.bottom ? `bottom:${s.bottom};` : "",
+              s.left   ? `left:${s.left};`  : "",
+              s.right  ? `right:${s.right};`: "",
+              `background:${s.bg};`,
+              `box-shadow:0 2px 12px ${s.shadow};`,
+              `animation-delay:${s.delay};`,
+              "z-index:20;",
+            ].join("");
+            container.appendChild(el);
+          });
+        }
+
+        container.style.display = "block";
+        document.getElementById("ar-hint").textContent =
+          "🤚 Drag untuk putar model • Pinch untuk zoom";
+      }
+
+      btn.textContent = "⏹️ Matikan AR";
+      btn.style.background = "linear-gradient(135deg, #ff6b6b, #ff4757)";
+      arActive = true;
+    } catch (e) {
+      showToast("Izin kamera ditolak atau tidak tersedia", "error");
+    }
+  } else {
+    // === MATIKAN AR ===
+    stopCamera();
+
+    document.getElementById("ar-video").style.display = "none";
+
+    // Destroy model-viewer sepenuhnya
+    const container = document.getElementById("model-3d-container");
+    if (container) {
+      container.innerHTML = "";
+      container.style.display = "none";
+    }
+
+    // Tampilkan kembali overlay gambar
+    document.getElementById("ar-overlay").style.display = "flex";
+    document.getElementById("ar-hint").textContent =
+      "🤚 Drag untuk putar • Scroll untuk zoom";
+
+    btn.textContent = "📷 Aktifkan AR";
+    btn.style.background = "";
+    arActive = false;
   }
 }
 

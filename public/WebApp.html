@@ -9,6 +9,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="css/Main.css" />
+    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
   </head>
   <body>
     <div class="toast" id="toast"></div>
@@ -408,23 +409,23 @@
         </div>
         <div class="content">
           <div class="ar-viewport" id="ar-viewport">
-            <video id="ar-video" autoplay playsinline muted></video>
+            <!-- Kamera -->
+            <video id="ar-video" autoplay playsinline muted style="display:none;"></video>
+
+            <!-- Container model 3D (dibuat dinamis via JS) -->
+            <div id="model-3d-container" style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:10;display:none;overflow:hidden;">
+              <!-- model-viewer dibuat ulang setiap toggle agar rotate/zoom selalu aktif -->
+            </div>
+
+            <!-- Tampilan default: gambar makanan + labels -->
             <div class="ar-overlay" id="ar-overlay">
               <img id="ar-food-img" src="" alt="" draggable="false" />
               <div class="ar-label" id="ar-label1"></div>
               <div class="ar-label" id="ar-label2"></div>
               <div class="ar-label" id="ar-label3"></div>
             </div>
-            <div class="camera-off" id="camera-off">
-              <div class="camera-off-icon">📷</div>
-              <div class="camera-off-text">
-                Aktifkan kamera untuk<br />melihat simulasi AR
-              </div>
-              <button class="btn-cam" onclick="startCamera()">
-                Buka Kamera
-              </button>
-            </div>
-            <div class="ar-hint">🤚 Drag untuk putar • Scroll untuk zoom</div>
+
+            <div class="ar-hint" id="ar-hint">🤚 Drag untuk putar • Scroll untuk zoom</div>
           </div>
           <div class="detail-info" id="detail-info">
             <div class="detail-name" id="detail-name"></div>
@@ -440,8 +441,8 @@
               >
                 ← Kembali
               </button>
-              <button class="btn btn-primary" onclick="startCamera()">
-                📷 Buka AR
+              <button class="btn btn-primary" id="btn-ar-toggle" onclick="toggleAR()">
+                📷 Aktifkan AR
               </button>
             </div>
           </div>
