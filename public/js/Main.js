@@ -359,7 +359,7 @@ const foodData = [
 const foodModels = {
   "Gado Gado": "assets/models/gado-gado.glb",
   "Bubur Ayam": "assets/models/Bubur_Ayam.glb",
-  "Yogurt": "assets/models/yogurt.glb",
+  "Yogurt Buah": "assets/models/yogurt.glb",
   "Pecel Lele": "assets/models/Pecel-Lele.glb",
   "Ayam Penyet": "assets/models/ayam_penyet.glb",
   "Nasi Putih Ayam Goreng": "assets/models/nasi_lemak.glb",
