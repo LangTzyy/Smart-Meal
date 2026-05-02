@@ -712,36 +712,157 @@ function saveProfile() {
 }
 
 // ─── RIWAYAT ──────────────────────────────────────────────────
+let riwayatFilter = "all";
+
+function setRiwayatFilter(filter, btn) {
+  riwayatFilter = filter;
+  document.querySelectorAll(".riwayat-filter-btn").forEach((b) => b.classList.remove("active"));
+  btn.classList.add("active");
+  filterRiwayat();
+}
+
+function filterRiwayat() {
+  const query = (document.getElementById("riwayat-search")?.value || "").toLowerCase().trim();
+  const allRiwayat = getRiwayat(state.currentUser);
+  const now = new Date();
+
+  const filtered = allRiwayat.filter((r) => {
+    // Date filter
+    if (riwayatFilter !== "all") {
+      const rDate = new Date(r.rawTime || r.time);
+      if (riwayatFilter === "today") {
+        if (rDate.toDateString() !== now.toDateString()) return false;
+      } else if (riwayatFilter === "week") {
+        const weekAgo = new Date(now); weekAgo.setDate(now.getDate() - 7);
+        if (rDate < weekAgo) return false;
+      } else if (riwayatFilter === "month") {
+        if (rDate.getMonth() !== now.getMonth() || rDate.getFullYear() !== now.getFullYear()) return false;
+      }
+    }
+    // Search filter
+    if (query) {
+      const searchable = ((r.name || "") + " " + (r.goal || "") + " " + (r.meal || "")).toLowerCase();
+      if (!searchable.includes(query)) return false;
+    }
+    return true;
+  });
+
+  renderRiwayatList(filtered);
+}
+
 function renderRiwayat() {
+  riwayatFilter = "all";
+  // Reset filter buttons
+  document.querySelectorAll(".riwayat-filter-btn").forEach((b) => b.classList.remove("active"));
+  const allBtn = document.getElementById("filter-all");
+  if (allBtn) allBtn.classList.add("active");
+  // Reset search
+  const searchEl = document.getElementById("riwayat-search");
+  if (searchEl) searchEl.value = "";
+
+  const allRiwayat = getRiwayat(state.currentUser);
+  renderStats(allRiwayat);
+  renderRiwayatList(allRiwayat);
+}
+
+function renderStats(riwayat) {
+  const total = riwayat.length;
+  const kaloriEntries = riwayat.filter((r) => r.type === "kalori");
+  const avgKalori = kaloriEntries.length
+    ? Math.round(kaloriEntries.reduce((s, r) => s + (r.targetCalories || 0), 0) / kaloriEntries.length)
+    : 0;
+
+  // Goal terfavorit
+  const goalCount = {};
+  kaloriEntries.forEach((r) => {
+    const g = (r.goal || "").replace(/[^a-zA-Z]/g, "").toLowerCase();
+    goalCount[g] = (goalCount[g] || 0) + 1;
+  });
+  const topGoal = Object.entries(goalCount).sort((a, b) => b[1] - a[1])[0];
+  const goalEmoji = { diet: "🥗", healthy: "💚", bulking: "💪" };
+  const goalLabel = topGoal ? (goalEmoji[topGoal[0]] || "") + " " + topGoal[0].charAt(0).toUpperCase() + topGoal[0].slice(1) : "-";
+
+  document.getElementById("stat-total").textContent = total;
+  document.getElementById("stat-kalori").textContent = avgKalori ? avgKalori + " kcal" : "-";
+  document.getElementById("stat-goal").textContent = goalLabel;
+}
+
+function renderRiwayatList(riwayat) {
   const list = document.getElementById("riwayat-list");
-  const riwayat = getRiwayat(state.currentUser);
   if (!riwayat.length) {
-    list.innerHTML =
-      '<div class="riwayat-empty">Belum ada riwayat. Mulai hitung kalori atau lihat rekomendasi makanan! 🥗</div>';
+    list.innerHTML = '<div class="riwayat-empty">Tidak ada riwayat yang cocok. 🔍<br>Coba ubah filter atau kata kunci pencarian.</div>';
     return;
   }
-  list.innerHTML = riwayat
-    .map((r) => {
-      if (r.type === "kalori") {
-        return `<div class="riwayat-item riwayat-kalori">
-        <div class="riwayat-icon">🔥</div>
-        <div class="riwayat-info">
-          <div class="riwayat-name">${r.goal} · ${r.meal}</div>
-          <div class="riwayat-detail">Target: ${r.targetCalories} kcal · TDEE: ${r.tdee} kcal</div>
-          <div class="riwayat-time">${r.time}</div>
-        </div>
-      </div>`;
-      }
-      return `<div class="riwayat-item">
-      <img src="${r.img}" class="riwayat-img" alt="${r.name}" onerror="this.style.display='none'">
+
+  // Kelompokkan per tanggal
+  const groups = {};
+  riwayat.forEach((r, idx) => {
+    const dateKey = (() => {
+      try {
+        const d = new Date(r.rawTime || r.time);
+        if (isNaN(d)) return r.time?.split(",")[0] || "Lainnya";
+        const today = new Date();
+        const yesterday = new Date(); yesterday.setDate(today.getDate() - 1);
+        if (d.toDateString() === today.toDateString()) return "Hari Ini";
+        if (d.toDateString() === yesterday.toDateString()) return "Kemarin";
+        return d.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+      } catch { return "Lainnya"; }
+    })();
+    if (!groups[dateKey]) groups[dateKey] = [];
+    groups[dateKey].push({ ...r, _idx: idx });
+  });
+
+  list.innerHTML = Object.entries(groups).map(([date, items]) => `
+    <div class="riwayat-date-group">
+      <div class="riwayat-date-header">
+        <span>${date}</span>
+        <div class="riwayat-date-line"></div>
+        <span class="riwayat-date-count">${items.length}</span>
+      </div>
+      ${items.map((r) => renderRiwayatItem(r)).join("")}
+    </div>
+  `).join("");
+}
+
+function renderRiwayatItem(r) {
+  const idxAttr = `data-idx="${r._idx}"`;
+  if (r.type === "kalori") {
+    return `<div class="riwayat-item riwayat-kalori" ${idxAttr}>
+      <div class="riwayat-icon">🔥</div>
       <div class="riwayat-info">
-        <div class="riwayat-name">${r.name}</div>
-        <div class="riwayat-detail">🔥 ${r.calories} kcal</div>
+        <div class="riwayat-name">${r.goal} · ${r.meal}</div>
+        <div class="riwayat-detail">Target: ${r.targetCalories} kcal · TDEE: ${r.tdee} kcal</div>
         <div class="riwayat-time">${r.time}</div>
       </div>
+      <button class="riwayat-del-btn" onclick="deleteRiwayatItem(${r._idx})" title="Hapus">✕</button>
     </div>`;
-    })
-    .join("");
+  }
+  return `<div class="riwayat-item" ${idxAttr}>
+    <img src="${r.img}" class="riwayat-img" alt="${r.name}" onerror="this.style.display='none'">
+    <div class="riwayat-info">
+      <div class="riwayat-name">${r.name}</div>
+      <div class="riwayat-detail">🔥 ${r.calories} kcal · ${r.protein || 0}g protein</div>
+      <div class="riwayat-time">${r.time}</div>
+    </div>
+    <button class="riwayat-del-btn" onclick="deleteRiwayatItem(${r._idx})" title="Hapus">✕</button>
+  </div>`;
+}
+
+function deleteRiwayatItem(idx) {
+  const riwayat = getRiwayat(state.currentUser);
+  riwayat.splice(idx, 1);
+  LS.set("sm_riwayat_" + state.currentUser, riwayat);
+  renderStats(riwayat);
+  filterRiwayat();
+  showToast("Riwayat dihapus", "success");
+}
+
+function clearAllRiwayat() {
+  if (!confirm("Hapus semua riwayat? Tidak bisa dikembalikan.")) return;
+  LS.remove("sm_riwayat_" + state.currentUser);
+  renderStats([]);
+  renderRiwayatList([]);
+  showToast("Semua riwayat dihapus 🗑️");
 }
 
 // ─── NAV / ROUTING ────────────────────────────────────────────
@@ -928,6 +1049,7 @@ function calculateAndShow() {
     targetCalories: target,
     mealCalories: mealCal,
     time: fmtTime(),
+    rawTime: new Date().toISOString(),
   });
 
   buildResultPage(tdee, target, mealCal);
@@ -1114,8 +1236,10 @@ function openDetail(idx) {
     type: "food",
     name: f.name,
     calories: f.calories,
+    protein: f.protein,
     img: f.img,
     time: fmtTime(),
+    rawTime: new Date().toISOString(),
   });
 }
 
