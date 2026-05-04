@@ -277,16 +277,18 @@
         color: var(--text-primary);
       }
 
-      .nav-logo-icon {
-        width: 36px;
-        height: 36px;
-        border-radius: 10px;
-        background: linear-gradient(135deg, var(--green), var(--blue));
+      .logo {
         display: flex;
         align-items: center;
-        justify-content: center;
+        gap: 8px;
+        font-weight: 700;
         font-size: 18px;
-        box-shadow: var(--green-glow);
+      }
+
+      .logo-img {
+        width: 28px;
+        height: 28px;
+        object-fit: contain;
       }
 
       .nav-logo span {
@@ -1820,17 +1822,6 @@
         text-decoration: none;
       }
 
-      .footer-logo-icon {
-        width: 32px;
-        height: 32px;
-        border-radius: 9px;
-        background: linear-gradient(135deg, var(--green), var(--blue));
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 15px;
-      }
-
       .footer-desc {
         font-size: 14px;
         color: var(--text-muted);
@@ -2177,11 +2168,6 @@
         .nav-logo {
           font-size: 17px;
         }
-        .nav-logo-icon {
-          width: 30px;
-          height: 30px;
-          font-size: 15px;
-        }
       }
     </style>
   </head>
@@ -2199,7 +2185,7 @@
       <div class="container">
         <div class="nav-inner">
           <a href="#" class="nav-logo">
-            <div class="nav-logo-icon">🥗</div>
+            <img src="assets/image/logo2.png" alt="logo" class="logo-img" />
             AR <span>Smart</span> Meal
           </a>
 
@@ -2664,8 +2650,8 @@
                 <div class="ar-point-icon">📡</div>
                 <p class="ar-point-text">
                   <strong>Real-time AR Detection</strong> — Kamera otomatis
-                  menampilkan makanan dan overlay informasi nutrisi
-                  secara instan.
+                  menampilkan makanan dan overlay informasi nutrisi secara
+                  instan.
                 </p>
               </li>
               <li class="ar-point">
@@ -2932,7 +2918,9 @@
         <div class="footer-inner">
           <div class="footer-brand">
             <a href="#" class="footer-logo">
-              <div class="footer-logo-icon">🥗</div>
+              <div>
+                <img src="assets/image/logo2.png" alt="logo" class="logo-img" />
+              </div>
               AR Smart Meal
             </a>
             <p class="footer-desc">

@@ -1,7 +1,48 @@
 /* ═══════════════════════════════════════════════════════════════
    SmartMeal — Complete App Logic
-   Features: Auth, LocalStorage, AI Chatbot, Riwayat, AR, Kalori
+   Features: Auth (Firebase), Firestore, AI Chatbot, Riwayat, AR
 ═══════════════════════════════════════════════════════════════ */
+
+// ─── FIREBASE SETUP ───────────────────────────────────────────
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  updatePassword,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  getDoc,
+  updateDoc,
+  collection,
+  addDoc,
+  getDocs,
+  deleteDoc,
+  query,
+  orderBy,
+  limit,
+  serverTimestamp,
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBc_HbaBPOuYdo26gKpmT-LUFd6LtV2d7c",
+  authDomain: "smart-meal-1c301.firebaseapp.com",
+  projectId: "smart-meal-1c301",
+  storageBucket: "smart-meal-1c301.firebasestorage.app",
+  messagingSenderId: "602665872132",
+  appId: "1:602665872132:web:0b64ac1367d6586be33e51",
+};
+
+const firebaseApp = initializeApp(firebaseConfig);
+const auth = getAuth(firebaseApp);
+const db = getFirestore(firebaseApp);
 
 // ─── FOOD DATA ────────────────────────────────────────────────
 const foodData = [
@@ -386,7 +427,8 @@ const state = {
   currentFood: null,
   history: ["home-section"],
   cameraStream: null,
-  currentUser: null,
+  currentUser: null, // Firebase UID
+  currentUsername: null, // display name
 };
 
 // ─── GLOBAL VARIABLES ─────────────────────────
@@ -404,7 +446,7 @@ let chatInitialized = false;
 
 let currentFilteredFoods = [];
 
-// ─── LOCAL STORAGE HELPERS ────────────────────────────────────
+// ─── LOCAL STORAGE HELPERS (tetap untuk state sementara) ──────
 const LS = {
   get(k) {
     try {
@@ -423,47 +465,69 @@ const LS = {
   },
 };
 
-function getUsers() {
-  return LS.get("sm_users") || {};
-}
-function saveUsers(u) {
-  LS.set("sm_users", u);
-}
-function getSession() {
-  return LS.get("sm_session");
-}
-function saveSession(username) {
-  LS.set("sm_session", username);
-}
-function clearSession() {
-  LS.remove("sm_session");
+// ─── FIRESTORE HELPERS ────────────────────────────────────────
+async function fsGetUser(uid) {
+  try {
+    const snap = await getDoc(doc(db, "users", uid));
+    return snap.exists() ? snap.data() : null;
+  } catch {
+    return null;
+  }
 }
 
-function getUserData(username) {
-  const users = getUsers();
-  return users[username] || null;
-}
-function saveUserData(username, data) {
-  const users = getUsers();
-  users[username] = { ...users[username], ...data };
-  saveUsers(users);
+async function fsSetUser(uid, data) {
+  await setDoc(doc(db, "users", uid), data, { merge: true });
 }
 
-function getRiwayat(username) {
-  return LS.get("sm_riwayat_" + username) || [];
-}
-function addRiwayat(username, entry) {
-  const r = getRiwayat(username);
-  r.unshift(entry);
-  if (r.length > 50) r.pop();
-  LS.set("sm_riwayat_" + username, r);
+async function fsGetRiwayat(uid) {
+  try {
+    const q = query(
+      collection(db, "riwayat", uid, "entries"),
+      orderBy("rawTime", "desc"),
+      limit(50),
+    );
+    const snap = await getDocs(q);
+    return snap.docs.map((d) => ({ ...d.data(), _docId: d.id }));
+  } catch {
+    return [];
+  }
 }
 
-function getChatHistory(username) {
-  return LS.get("sm_chat_" + username) || [];
+async function fsAddRiwayat(uid, entry) {
+  await addDoc(collection(db, "riwayat", uid, "entries"), entry);
 }
-function saveChatHistory(username, msgs) {
-  LS.set("sm_chat_" + username, msgs.slice(-60));
+
+async function fsDeleteRiwayat(uid, docId) {
+  await deleteDoc(doc(db, "riwayat", uid, "entries", docId));
+}
+
+async function fsDeleteAllRiwayat(uid) {
+  const snap = await getDocs(collection(db, "riwayat", uid, "entries"));
+  const dels = snap.docs.map((d) => deleteDoc(d.ref));
+  await Promise.all(dels);
+}
+
+async function fsGetChat(uid) {
+  try {
+    const q = query(
+      collection(db, "chats", uid, "messages"),
+      orderBy("rawTime", "asc"),
+      limit(60),
+    );
+    const snap = await getDocs(q);
+    return snap.docs.map((d) => ({ ...d.data(), _docId: d.id }));
+  } catch {
+    return [];
+  }
+}
+
+async function fsSaveChat(uid, msg) {
+  await addDoc(collection(db, "chats", uid, "messages"), msg);
+}
+
+async function fsClearChat(uid) {
+  const snap = await getDocs(collection(db, "chats", uid, "messages"));
+  await Promise.all(snap.docs.map((d) => deleteDoc(d.ref)));
 }
 
 // ─── TOAST ────────────────────────────────────────────────────
@@ -494,7 +558,7 @@ function togglePw(inputId, btn) {
   }
 }
 
-function doLogin() {
+async function doLogin() {
   const id = document.getElementById("login-identifier").value.trim();
   const pw = document.getElementById("login-password").value;
   if (!id || !pw) {
@@ -502,26 +566,45 @@ function doLogin() {
     return;
   }
 
-  const users = getUsers();
-  let found = null;
-  for (const uname in users) {
-    const u = users[uname];
-    if ((uname === id || u.email === id) && u.password === pw) {
-      found = uname;
-      break;
+  const loginBtn = document.querySelector("#login-screen .btn-primary");
+  if (loginBtn) {
+    loginBtn.textContent = "Masuk...";
+    loginBtn.disabled = true;
+  }
+
+  try {
+    // Support login pakai username → ambil email dari Firestore
+    let email = id;
+    if (!id.includes("@")) {
+      const snap = await getDocs(collection(db, "users"));
+      const found = snap.docs.find((d) => d.data().username === id);
+      if (!found) {
+        showToast("Username tidak ditemukan!", "error");
+        return;
+      }
+      email = found.data().email;
+    }
+    const cred = await signInWithEmailAndPassword(auth, email, pw);
+    // onAuthStateChanged akan handle loginSuccess
+  } catch (e) {
+    const msg =
+      e.code === "auth/invalid-credential"
+        ? "Email/password salah!"
+        : e.code === "auth/user-not-found"
+          ? "Akun tidak ditemukan!"
+          : e.code === "auth/too-many-requests"
+            ? "Terlalu banyak percobaan. Coba lagi nanti!"
+            : "Login gagal: " + e.message;
+    showToast(msg, "error");
+  } finally {
+    if (loginBtn) {
+      loginBtn.textContent = "Masuk →";
+      loginBtn.disabled = false;
     }
   }
-  if (!found) {
-    showToast("Username/email atau password salah!", "error");
-    return;
-  }
-
-  saveSession(found);
-  state.currentUser = found;
-  loginSuccess(found);
 }
 
-function doRegister() {
+async function doRegister() {
   const username = document.getElementById("reg-username").value.trim();
   const email = document.getElementById("reg-email").value.trim();
   const pw = document.getElementById("reg-password").value;
@@ -544,44 +627,65 @@ function doRegister() {
     return;
   }
 
-  const users = getUsers();
-  if (users[username]) {
-    showToast("Username sudah dipakai!", "error");
-    return;
+  const regBtn = document.querySelector("#register-screen .btn-primary");
+  if (regBtn) {
+    regBtn.textContent = "Mendaftar...";
+    regBtn.disabled = true;
   }
-  for (const u in users) {
-    if (users[u].email === email) {
-      showToast("Email sudah terdaftar!", "error");
+
+  try {
+    // Cek username unik di Firestore
+    const snap = await getDocs(collection(db, "users"));
+    const taken = snap.docs.find((d) => d.data().username === username);
+    if (taken) {
+      showToast("Username sudah dipakai!", "error");
       return;
     }
-  }
 
-  const joined = new Date().toLocaleDateString("id-ID", {
-    month: "long",
-    year: "numeric",
-  });
-  users[username] = { email, password: pw, avatar: "👤", joined };
-  saveUsers(users);
-  saveSession(username);
-  state.currentUser = username;
-  showToast("Akun berhasil dibuat! 🎉", "success");
-  loginSuccess(username);
+    const cred = await createUserWithEmailAndPassword(auth, email, pw);
+    const joined = new Date().toLocaleDateString("id-ID", {
+      month: "long",
+      year: "numeric",
+    });
+    await fsSetUser(cred.user.uid, { username, email, avatar: "👤", joined });
+    showToast("Akun berhasil dibuat! 🎉", "success");
+    // onAuthStateChanged akan handle loginSuccess
+  } catch (e) {
+    const msg =
+      e.code === "auth/email-already-in-use"
+        ? "Email sudah terdaftar!"
+        : e.code === "auth/weak-password"
+          ? "Password terlalu lemah!"
+          : "Registrasi gagal: " + e.message;
+    showToast(msg, "error");
+  } finally {
+    if (regBtn) {
+      regBtn.textContent = "Daftar";
+      regBtn.disabled = false;
+    }
+  }
 }
 
-function loginSuccess(username) {
-  const userData = getUserData(username);
+async function loginSuccess(user) {
+  const userData = await fsGetUser(user.uid);
+  state.currentUser = user.uid;
+  state.currentUsername = userData?.username || user.email;
   document.getElementById("auth-wrapper").style.display = "none";
   document.getElementById("app-wrapper").style.display = "block";
-  updateProfileUI(username, userData);
-  initChatForUser(username);
-  showToast("Selamat datang, " + username + "! 👋", "success");
+  updateProfileUI(state.currentUsername, userData);
+  await initChatForUser(user.uid);
+  showToast(
+    "Selamat datang, " + (userData?.username || user.email) + "! 👋",
+    "success",
+  );
   switchTab("home");
 }
 
-function doLogout() {
+async function doLogout() {
   document.getElementById("logout-modal").style.display = "none";
-  clearSession();
+  await signOut(auth);
   state.currentUser = null;
+  state.currentUsername = null;
   document.getElementById("app-wrapper").style.display = "none";
   document.getElementById("auth-wrapper").style.display = "block";
   showAuth("login-screen");
@@ -598,6 +702,7 @@ function updateProfileUI(username, userData) {
   const avatar = userData?.avatar || "👤";
   const email = userData?.email || "";
   document.getElementById("profile-avatar-display").textContent = avatar;
+
   document.getElementById("profile-username-display").textContent = username;
   document.getElementById("profile-email-display").textContent = email;
   document.getElementById("topbar-avatar").textContent = avatar;
@@ -607,14 +712,14 @@ function updateProfileUI(username, userData) {
 }
 
 // ─── PROFILE FUNCTIONS ────────────────────────────────────────
-function showProfileSub(id) {
+async function showProfileSub(id) {
   document.getElementById("profile-main-view").style.display = "none";
   document
     .querySelectorAll(".profile-sub-view")
     .forEach((v) => (v.style.display = "none"));
   document.getElementById("sub-" + id).style.display = "block";
-  const uname = state.currentUser;
-  const userData = getUserData(uname);
+  const uname = state.currentUsername || state.currentUser;
+  const userData = await fsGetUser(state.currentUser);
 
   if (id === "info-akun") {
     document.getElementById("info-username").textContent = uname;
@@ -647,11 +752,10 @@ function pickEmoji(emoji) {
   document.getElementById("edit-avatar-preview").textContent = emoji;
 }
 
-function saveProfile() {
+async function saveProfile() {
   const newUsername = document.getElementById("edit-username").value.trim();
   const newEmail = document.getElementById("edit-email").value.trim();
   const newPw = document.getElementById("edit-password").value;
-  const oldUsername = state.currentUser;
 
   if (!newUsername || !newEmail) {
     showToast("Lengkapi field wajib!", "error");
@@ -666,110 +770,127 @@ function saveProfile() {
     return;
   }
 
-  const users = getUsers();
-  // Check if new username already taken by someone else
-  if (newUsername !== oldUsername && users[newUsername]) {
-    showToast("Username sudah dipakai!", "error");
-    return;
-  }
-  // Check email
-  for (const u in users) {
-    if (u !== oldUsername && users[u].email === newEmail) {
-      showToast("Email sudah dipakai!", "error");
-      return;
+  try {
+    const uid = state.currentUser;
+    const avatar = tempAvatar || (await fsGetUser(uid))?.avatar || "👤";
+    await fsSetUser(uid, { username: newUsername, email: newEmail, avatar });
+
+    if (newPw) {
+      const pwField = document.getElementById("edit-current-password");
+      const currentPw =
+        pwField?.value ||
+        prompt("Masukkan password saat ini untuk konfirmasi:");
+      if (!currentPw) {
+        showToast("Password lama diperlukan!", "error");
+        return;
+      }
+      const credential = EmailAuthProvider.credential(
+        auth.currentUser.email,
+        currentPw,
+      );
+      await reauthenticateWithCredential(auth.currentUser, credential);
+      await updatePassword(auth.currentUser, newPw);
     }
-  }
 
-  const oldData = users[oldUsername] || {};
-  const newData = {
-    ...oldData,
-    email: newEmail,
-    avatar: tempAvatar || oldData.avatar || "👤",
-  };
-  if (newPw) newData.password = newPw;
-
-  // Handle username change
-  if (newUsername !== oldUsername) {
-    users[newUsername] = newData;
-    delete users[oldUsername];
-    // Migrate riwayat and chat
-    const riwayat = getRiwayat(oldUsername);
-    LS.set("sm_riwayat_" + newUsername, riwayat);
-    LS.remove("sm_riwayat_" + oldUsername);
-    const chat = getChatHistory(oldUsername);
-    LS.set("sm_chat_" + newUsername, chat);
-    LS.remove("sm_chat_" + oldUsername);
-    state.currentUser = newUsername;
-    saveSession(newUsername);
-  } else {
-    users[oldUsername] = newData;
+    state.currentUsername = newUsername;
+    tempAvatar = null;
+    updateProfileUI(newUsername, {
+      username: newUsername,
+      email: newEmail,
+      avatar,
+    });
+    showToast("Profil berhasil disimpan! ✓", "success");
+    hideProfileSub();
+  } catch (e) {
+    const msg =
+      e.code === "auth/wrong-password"
+        ? "Password lama salah!"
+        : e.code === "auth/requires-recent-login"
+          ? "Silakan logout & login ulang dulu!"
+          : "Gagal simpan profil: " + e.message;
+    showToast(msg, "error");
   }
-  saveUsers(users);
-  tempAvatar = null;
-  updateProfileUI(state.currentUser, newData);
-  showToast("Profil berhasil disimpan! ✓", "success");
-  hideProfileSub();
 }
 
 // ─── RIWAYAT ──────────────────────────────────────────────────
 let riwayatFilter = "all";
+let _riwayatCache = [];
 
 function setRiwayatFilter(filter, btn) {
   riwayatFilter = filter;
-  document.querySelectorAll(".riwayat-filter-btn").forEach((b) => b.classList.remove("active"));
+  document
+    .querySelectorAll(".riwayat-filter-btn")
+    .forEach((b) => b.classList.remove("active"));
   btn.classList.add("active");
   filterRiwayat();
 }
 
 function filterRiwayat() {
-  const query = (document.getElementById("riwayat-search")?.value || "").toLowerCase().trim();
-  const allRiwayat = getRiwayat(state.currentUser);
+  const query = (document.getElementById("riwayat-search")?.value || "")
+    .toLowerCase()
+    .trim();
   const now = new Date();
-
-  const filtered = allRiwayat.filter((r) => {
-    // Date filter
+  const filtered = _riwayatCache.filter((r) => {
     if (riwayatFilter !== "all") {
       const rDate = new Date(r.rawTime || r.time);
-      if (riwayatFilter === "today") {
-        if (rDate.toDateString() !== now.toDateString()) return false;
-      } else if (riwayatFilter === "week") {
-        const weekAgo = new Date(now); weekAgo.setDate(now.getDate() - 7);
-        if (rDate < weekAgo) return false;
-      } else if (riwayatFilter === "month") {
-        if (rDate.getMonth() !== now.getMonth() || rDate.getFullYear() !== now.getFullYear()) return false;
+      if (
+        riwayatFilter === "today" &&
+        rDate.toDateString() !== now.toDateString()
+      )
+        return false;
+      if (riwayatFilter === "week") {
+        const w = new Date(now);
+        w.setDate(now.getDate() - 7);
+        if (rDate < w) return false;
       }
+      if (
+        riwayatFilter === "month" &&
+        (rDate.getMonth() !== now.getMonth() ||
+          rDate.getFullYear() !== now.getFullYear())
+      )
+        return false;
     }
-    // Search filter
     if (query) {
-      const searchable = ((r.name || "") + " " + (r.goal || "") + " " + (r.meal || "")).toLowerCase();
-      if (!searchable.includes(query)) return false;
+      const s = (
+        (r.name || "") +
+        " " +
+        (r.goal || "") +
+        " " +
+        (r.meal || "")
+      ).toLowerCase();
+      if (!s.includes(query)) return false;
     }
     return true;
   });
-
   renderRiwayatList(filtered);
 }
 
-function renderRiwayat() {
+async function renderRiwayat() {
   riwayatFilter = "all";
-  // Reset filter buttons
-  document.querySelectorAll(".riwayat-filter-btn").forEach((b) => b.classList.remove("active"));
+  document
+    .querySelectorAll(".riwayat-filter-btn")
+    .forEach((b) => b.classList.remove("active"));
   const allBtn = document.getElementById("filter-all");
   if (allBtn) allBtn.classList.add("active");
-  // Reset search
   const searchEl = document.getElementById("riwayat-search");
   if (searchEl) searchEl.value = "";
 
-  const allRiwayat = getRiwayat(state.currentUser);
-  renderStats(allRiwayat);
-  renderRiwayatList(allRiwayat);
+  const list = document.getElementById("riwayat-list");
+  list.innerHTML = '<div class="riwayat-empty">Memuat riwayat... ⏳</div>';
+
+  _riwayatCache = await fsGetRiwayat(state.currentUser);
+  renderStats(_riwayatCache);
+  renderRiwayatList(_riwayatCache);
 }
 
 function renderStats(riwayat) {
   const total = riwayat.length;
   const kaloriEntries = riwayat.filter((r) => r.type === "kalori");
   const avgKalori = kaloriEntries.length
-    ? Math.round(kaloriEntries.reduce((s, r) => s + (r.targetCalories || 0), 0) / kaloriEntries.length)
+    ? Math.round(
+        kaloriEntries.reduce((s, r) => s + (r.targetCalories || 0), 0) /
+          kaloriEntries.length,
+      )
     : 0;
 
   // Goal terfavorit
@@ -780,17 +901,25 @@ function renderStats(riwayat) {
   });
   const topGoal = Object.entries(goalCount).sort((a, b) => b[1] - a[1])[0];
   const goalEmoji = { diet: "🥗", healthy: "💚", bulking: "💪" };
-  const goalLabel = topGoal ? (goalEmoji[topGoal[0]] || "") + " " + topGoal[0].charAt(0).toUpperCase() + topGoal[0].slice(1) : "-";
+  const goalLabel = topGoal
+    ? (goalEmoji[topGoal[0]] || "") +
+      " " +
+      topGoal[0].charAt(0).toUpperCase() +
+      topGoal[0].slice(1)
+    : "-";
 
   document.getElementById("stat-total").textContent = total;
-  document.getElementById("stat-kalori").textContent = avgKalori ? avgKalori + " kcal" : "-";
+  document.getElementById("stat-kalori").textContent = avgKalori
+    ? avgKalori + " kcal"
+    : "-";
   document.getElementById("stat-goal").textContent = goalLabel;
 }
 
 function renderRiwayatList(riwayat) {
   const list = document.getElementById("riwayat-list");
   if (!riwayat.length) {
-    list.innerHTML = '<div class="riwayat-empty">Tidak ada riwayat yang cocok. 🔍<br>Coba ubah filter atau kata kunci pencarian.</div>';
+    list.innerHTML =
+      '<div class="riwayat-empty">Tidak ada riwayat yang cocok. 🔍<br>Coba ubah filter atau kata kunci pencarian.</div>';
     return;
   }
 
@@ -802,17 +931,26 @@ function renderRiwayatList(riwayat) {
         const d = new Date(r.rawTime || r.time);
         if (isNaN(d)) return r.time?.split(",")[0] || "Lainnya";
         const today = new Date();
-        const yesterday = new Date(); yesterday.setDate(today.getDate() - 1);
+        const yesterday = new Date();
+        yesterday.setDate(today.getDate() - 1);
         if (d.toDateString() === today.toDateString()) return "Hari Ini";
         if (d.toDateString() === yesterday.toDateString()) return "Kemarin";
-        return d.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
-      } catch { return "Lainnya"; }
+        return d.toLocaleDateString("id-ID", {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        });
+      } catch {
+        return "Lainnya";
+      }
     })();
     if (!groups[dateKey]) groups[dateKey] = [];
     groups[dateKey].push({ ...r, _idx: idx });
   });
 
-  list.innerHTML = Object.entries(groups).map(([date, items]) => `
+  list.innerHTML = Object.entries(groups)
+    .map(
+      ([date, items]) => `
     <div class="riwayat-date-group">
       <div class="riwayat-date-header">
         <span>${date}</span>
@@ -821,45 +959,47 @@ function renderRiwayatList(riwayat) {
       </div>
       ${items.map((r) => renderRiwayatItem(r)).join("")}
     </div>
-  `).join("");
+  `,
+    )
+    .join("");
 }
 
 function renderRiwayatItem(r) {
-  const idxAttr = `data-idx="${r._idx}"`;
+  const docId = r._docId || "";
   if (r.type === "kalori") {
-    return `<div class="riwayat-item riwayat-kalori" ${idxAttr}>
+    return `<div class="riwayat-item riwayat-kalori">
       <div class="riwayat-icon">🔥</div>
       <div class="riwayat-info">
         <div class="riwayat-name">${r.goal} · ${r.meal}</div>
         <div class="riwayat-detail">Target: ${r.targetCalories} kcal · TDEE: ${r.tdee} kcal</div>
         <div class="riwayat-time">${r.time}</div>
       </div>
-      <button class="riwayat-del-btn" onclick="deleteRiwayatItem(${r._idx})" title="Hapus">✕</button>
+      <button class="riwayat-del-btn" onclick="deleteRiwayatItem('${docId}')" title="Hapus">✕</button>
     </div>`;
   }
-  return `<div class="riwayat-item" ${idxAttr}>
+  return `<div class="riwayat-item">
     <img src="${r.img}" class="riwayat-img" alt="${r.name}" onerror="this.style.display='none'">
     <div class="riwayat-info">
       <div class="riwayat-name">${r.name}</div>
       <div class="riwayat-detail">🔥 ${r.calories} kcal · ${r.protein || 0}g protein</div>
       <div class="riwayat-time">${r.time}</div>
     </div>
-    <button class="riwayat-del-btn" onclick="deleteRiwayatItem(${r._idx})" title="Hapus">✕</button>
+    <button class="riwayat-del-btn" onclick="deleteRiwayatItem('${docId}')" title="Hapus">✕</button>
   </div>`;
 }
 
-function deleteRiwayatItem(idx) {
-  const riwayat = getRiwayat(state.currentUser);
-  riwayat.splice(idx, 1);
-  LS.set("sm_riwayat_" + state.currentUser, riwayat);
-  renderStats(riwayat);
+async function deleteRiwayatItem(docId) {
+  await fsDeleteRiwayat(state.currentUser, docId);
+  _riwayatCache = _riwayatCache.filter((r) => r._docId !== docId);
+  renderStats(_riwayatCache);
   filterRiwayat();
   showToast("Riwayat dihapus", "success");
 }
 
-function clearAllRiwayat() {
+async function clearAllRiwayat() {
   if (!confirm("Hapus semua riwayat? Tidak bisa dikembalikan.")) return;
-  LS.remove("sm_riwayat_" + state.currentUser);
+  await fsDeleteAllRiwayat(state.currentUser);
+  _riwayatCache = [];
   renderStats([]);
   renderRiwayatList([]);
   showToast("Semua riwayat dihapus 🗑️");
@@ -1041,7 +1181,7 @@ function calculateAndShow() {
     siang: "Makan Siang ☀️",
     malam: "Makan Malam 🌙",
   };
-  addRiwayat(state.currentUser, {
+  fsAddRiwayat(state.currentUser, {
     type: "kalori",
     goal: goalMap[state.goal],
     meal: mealMap[state.meal],
@@ -1072,14 +1212,27 @@ function buildResultPage(tdee, target, mealCal) {
     `Berdasarkan data tubuhmu (${state.weight}kg · ${state.height}cm · ${state.age}thn · ${state.gender === "pria" ? "Pria" : "Wanita"})`;
 
   const bmi = (state.weight / (state.height / 100) ** 2).toFixed(1);
+  const bmiNum = parseFloat(bmi);
   const bmiLabel =
-    bmi < 18.5
+    bmiNum < 18.5
       ? "Kurus"
-      : bmi < 25
+      : bmiNum < 25
         ? "Normal"
-        : bmi < 30
+        : bmiNum < 30
           ? "Overweight"
           : "Obesitas";
+  const bmiColor =
+    bmiNum < 18.5
+      ? "#00b4f5"
+      : bmiNum < 25
+        ? "#00e5a0"
+        : bmiNum < 30
+          ? "#ffb347"
+          : "#ff6b6b";
+  // BMI bar: range 10–40, clamp to 0–100%
+  const bmiPct = Math.min(100, Math.max(0, ((bmiNum - 10) / 30) * 100)).toFixed(
+    1,
+  );
 
   document.getElementById("calorie-cards").innerHTML = `
     <div class="calorie-card"><div class="calorie-card-icon">⚙️</div><div class="calorie-card-val">${state.bmr}</div><div class="calorie-card-label">BMR (kcal/hari)</div></div>
@@ -1088,23 +1241,285 @@ function buildResultPage(tdee, target, mealCal) {
     <div class="calorie-card"><div class="calorie-card-icon">🍽️</div><div class="calorie-card-val">${mealCal}</div><div class="calorie-card-label">Kalori ${getMealLabel(state.meal)}</div></div>
   `;
 
-  const goalMsg = {
+  // ── BMI Line Chart SVG ──
+  const svgW = 300,
+    svgH = 90,
+    padL = 8,
+    padR = 8,
+    padT = 28,
+    padB = 24;
+  const chartW = svgW - padL - padR;
+  const bmiMin = 10,
+    bmiMax = 40;
+  const bmiToX = (v) => padL + ((v - bmiMin) / (bmiMax - bmiMin)) * chartW;
+
+  const zones = [
+    { label: "Kurus", val: 14.25, color: "#00b4f5" },
+    { label: "Normal", val: 21.75, color: "#00e5a0" },
+    { label: "Overweight", val: 27.5, color: "#ffb347" },
+    { label: "Obesitas", val: 35, color: "#ff6b6b" },
+  ];
+  const thresholds = [
+    { val: 18.5, color: "#00b4f5" },
+    { val: 25, color: "#00e5a0" },
+    { val: 30, color: "#ffb347" },
+  ];
+  const zoneY = [
+    svgH - padB - 10,
+    svgH - padB - 30,
+    svgH - padB - 20,
+    svgH - padB - 8,
+  ];
+
+  const markerX = bmiToX(Math.min(bmiMax, Math.max(bmiMin, bmiNum)));
+  const pts = zones.map((z, i) => ({ x: bmiToX(z.val), y: zoneY[i] }));
+  let markerY = pts[0].y;
+  for (let i = 0; i < pts.length - 1; i++) {
+    if (markerX >= pts[i].x && markerX <= pts[i + 1].x) {
+      const t = (markerX - pts[i].x) / (pts[i + 1].x - pts[i].x);
+      markerY = pts[i].y + t * (pts[i + 1].y - pts[i].y);
+      break;
+    }
+  }
+  if (markerX < pts[0].x) markerY = pts[0].y;
+  if (markerX > pts[pts.length - 1].x) markerY = pts[pts.length - 1].y;
+
+  // Build SVG strings menggunakan string concatenation (bukan nested template literal)
+  const polyPoints = zones
+    .map((z, i) => bmiToX(z.val) + "," + zoneY[i])
+    .join(" ");
+  const areaPoints =
+    padL +
+    "," +
+    (svgH - padB) +
+    " " +
+    polyPoints +
+    " " +
+    (svgW - padR) +
+    "," +
+    (svgH - padB);
+
+  const gradStops =
+    '<stop offset="0%" stop-color="#00b4f5"/>' +
+    '<stop offset="33%" stop-color="#00e5a0"/>' +
+    '<stop offset="66%" stop-color="#ffb347"/>' +
+    '<stop offset="100%" stop-color="#ff6b6b"/>';
+
+  const zoneDotsHtml = zones
+    .map(
+      (z, i) =>
+        '<circle cx="' +
+        bmiToX(z.val) +
+        '" cy="' +
+        zoneY[i] +
+        '" r="3" fill="' +
+        z.color +
+        '" opacity="0.5"/>',
+    )
+    .join("");
+
+  const zoneLabelsHtml = zones
+    .map(
+      (z, i) =>
+        '<text x="' +
+        bmiToX(z.val) +
+        '" y="' +
+        (svgH - 4) +
+        '" text-anchor="middle" fill="' +
+        z.color +
+        '" font-size="8" font-weight="600" opacity="0.75">' +
+        z.label +
+        "</text>",
+    )
+    .join("");
+
+  const thresholdLinesHtml = thresholds
+    .map(
+      (t) =>
+        '<line x1="' +
+        bmiToX(t.val) +
+        '" y1="' +
+        padT +
+        '" x2="' +
+        bmiToX(t.val) +
+        '" y2="' +
+        (svgH - padB) +
+        '" stroke="' +
+        t.color +
+        '" stroke-width="1" stroke-dasharray="3,3" opacity="0.3"/>',
+    )
+    .join("");
+
+  const bmiSvg =
+    '<svg viewBox="0 0 ' +
+    svgW +
+    " " +
+    svgH +
+    '" width="100%" style="overflow:visible;display:block;margin:0 0 6px">' +
+    "<defs>" +
+    '<linearGradient id="lineGrad" x1="0" x2="1" y1="0" y2="0">' +
+    gradStops +
+    "</linearGradient>" +
+    '<linearGradient id="areaGrad" x1="0" x2="0" y1="0" y2="1">' +
+    '<stop offset="0%" stop-color="' +
+    bmiColor +
+    '" stop-opacity="0.15"/>' +
+    '<stop offset="100%" stop-color="' +
+    bmiColor +
+    '" stop-opacity="0"/>' +
+    "</linearGradient></defs>" +
+    '<polygon points="' +
+    areaPoints +
+    '" fill="url(#areaGrad)" opacity="0.6"/>' +
+    thresholdLinesHtml +
+    '<polyline points="' +
+    polyPoints +
+    '" fill="none" stroke="url(#lineGrad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>' +
+    zoneDotsHtml +
+    '<line x1="' +
+    markerX +
+    '" y1="' +
+    padT +
+    '" x2="' +
+    markerX +
+    '" y2="' +
+    (svgH - padB) +
+    '" stroke="' +
+    bmiColor +
+    '" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.6"/>' +
+    '<circle cx="' +
+    markerX +
+    '" cy="' +
+    markerY +
+    '" r="6" fill="' +
+    bmiColor +
+    '" opacity="0.2"/>' +
+    '<circle cx="' +
+    markerX +
+    '" cy="' +
+    markerY +
+    '" r="4" fill="' +
+    bmiColor +
+    '" stroke="#0a0a0f" stroke-width="1.5"/>' +
+    '<text x="' +
+    markerX +
+    '" y="' +
+    (padT - 6) +
+    '" text-anchor="middle" fill="' +
+    bmiColor +
+    '" font-size="10" font-weight="800">' +
+    bmi +
+    "</text>" +
+    zoneLabelsHtml +
+    "</svg>";
+
+  const goalNote = {
     diet: "Defisit 400 kcal dari TDEE untuk penurunan berat badan optimal.",
     healthy: "Kalori seimbang dengan TDEE untuk menjaga berat badan ideal.",
     bulking: "Surplus 450 kcal dari TDEE untuk mendukung pertumbuhan otot.",
-  };
-  document.getElementById("target-banner").innerHTML =
-    `💡 <strong>Target ${getGoalLabel(state.goal)}:</strong> ${goalMsg[state.goal]} BMI kamu saat ini <strong>${bmi} (${bmiLabel})</strong>.`;
+  }[state.goal];
 
-  const reasonTxt = {
-    diet: "Makanan-makanan di bawah dipilih untuk mendukung defisit kalori sambil tetap memberikan nutrisi cukup.",
-    healthy:
-      "Rekomendasi seimbang antara karbohidrat, protein, dan lemak sehat.",
-    bulking:
-      "Makanan padat kalori dan protein tinggi untuk mendukung program bulking.",
-  };
-  document.getElementById("reason-box-result").innerHTML =
-    `<div class="reason-box">${reasonTxt[state.goal]}</div>`;
+  document.getElementById("target-banner").innerHTML =
+    '<div class="bmi-visual-wrap">' +
+    '<div class="bmi-visual-header">' +
+    "<span>📏 <strong>Indeks Massa Tubuh (BMI)</strong></span>" +
+    '<span class="bmi-value-badge" style="color:' +
+    bmiColor +
+    ";border-color:" +
+    bmiColor +
+    "20;background:" +
+    bmiColor +
+    '15">' +
+    bmi +
+    " · " +
+    bmiLabel +
+    "</span>" +
+    "</div>" +
+    bmiSvg +
+    "</div>" +
+    '<div class="bmi-goal-note">💡 <strong>Target ' +
+    getGoalLabel(state.goal) +
+    ":</strong> " +
+    goalNote +
+    "</div>";
+
+  // ── Makro Harian ──
+  const macroGoal = {
+    diet: {
+      protein: Math.round(state.weight * 2.0),
+      fat: Math.round((target * 0.25) / 9),
+      carbs: Math.round(
+        (target - state.weight * 2.0 * 4 - Math.round(target * 0.25)) / 4,
+      ),
+    },
+    healthy: {
+      protein: Math.round(state.weight * 1.6),
+      fat: Math.round((target * 0.3) / 9),
+      carbs: Math.round(
+        (target - state.weight * 1.6 * 4 - Math.round(target * 0.3)) / 4,
+      ),
+    },
+    bulking: {
+      protein: Math.round(state.weight * 2.2),
+      fat: Math.round((target * 0.28) / 9),
+      carbs: Math.round(
+        (target - state.weight * 2.2 * 4 - Math.round(target * 0.28)) / 4,
+      ),
+    },
+  }[state.goal];
+
+  const goalTips = {
+    diet: [
+      "Makan 5–6 kali kecil per hari",
+      "Prioritaskan protein agar massa otot terjaga",
+      "Kurangi karbohidrat simpel (nasi putih, gula)",
+      "Hindari makan berat setelah jam 8 malam",
+    ],
+    healthy: [
+      "Perbanyak sayur & buah setiap hari",
+      "Konsumsi karbohidrat kompleks (oat, nasi merah)",
+      "Minum air putih minimal 2 liter per hari",
+      "Jaga porsi makan konsisten 3x sehari",
+    ],
+    bulking: [
+      "Makan setiap 3 jam untuk surplus kalori",
+      "Konsumsi protein dalam 30 menit setelah latihan",
+      "Pilih karbohidrat padat (nasi, pasta, roti gandum)",
+      "Tambahkan healthy fat dari alpukat & kacang-kacangan",
+    ],
+  }[state.goal];
+
+  document.getElementById("reason-box-result").innerHTML = `
+    <div class="macro-daily-section">
+      <div class="macro-daily-title">📊 Target Makro Harian</div>
+      <div class="macro-daily-grid">
+        <div class="macro-daily-card protein-card">
+          <div class="macro-daily-icon">🥩</div>
+          <div class="macro-daily-val">${macroGoal.protein}g</div>
+          <div class="macro-daily-kcal">${macroGoal.protein * 4} kcal</div>
+          <div class="macro-daily-label">Protein</div>
+        </div>
+        <div class="macro-daily-card fat-card">
+          <div class="macro-daily-icon">🧈</div>
+          <div class="macro-daily-val">${macroGoal.fat}g</div>
+          <div class="macro-daily-kcal">${macroGoal.fat * 9} kcal</div>
+          <div class="macro-daily-label">Lemak</div>
+        </div>
+        <div class="macro-daily-card carbs-card">
+          <div class="macro-daily-icon">🍚</div>
+          <div class="macro-daily-val">${macroGoal.carbs}g</div>
+          <div class="macro-daily-kcal">${macroGoal.carbs * 4} kcal</div>
+          <div class="macro-daily-label">Karbo</div>
+        </div>
+      </div>
+    </div>
+    <div class="tips-section">
+      <div class="tips-title">💡 Tips ${getGoalLabel(state.goal)}</div>
+      <div class="tips-list">
+        ${goalTips.map((t) => `<div class="tip-item"><span class="tip-dot"></span><span>${t}</span></div>`).join("")}
+      </div>
+    </div>
+  `;
 
   currentFilteredFoods = foodData.filter(
     (f) => f.type === state.goal && f.meal === state.meal,
@@ -1180,7 +1595,7 @@ function openDetail(idx) {
   document.getElementById("macro-grid").innerHTML = macros
     .map(
       (m) =>
-        `<div class="macro-card"><div class="macro-card-icon">${m.icon}</div><div class="macro-card-val">${m.val}g</div><div class="macro-card-label">${m.label}</div></div>`,
+        `<div class="macro-card"><div class="macro-card-icon">${m.icon}</div><div class="macro-card-val">${m.val}g</div><div class="macro-card-kcal">${m.icon === "🥩" ? m.val * 4 : m.icon === "🧈" ? m.val * 9 : m.val * 4} kcal</div><div class="macro-card-label">${m.label}</div></div>`,
     )
     .join("");
 
@@ -1196,8 +1611,64 @@ function openDetail(idx) {
     bulking: "💪 Tinggi protein & kalori padat — optimal untuk bulking.",
     healthy: "💚 Seimbang antara makronutrien untuk pola hidup sehat.",
   };
-  document.getElementById("detail-reason").innerHTML =
-    `<strong>Mengapa ini?</strong> ${reasons[state.goal]}`;
+
+  // Kesesuaian kalori dengan target makan
+  const mealPct =
+    state.mealCalories > 0
+      ? Math.min(100, Math.round((f.calories / state.mealCalories) * 100))
+      : 0;
+  const fitColor =
+    mealPct <= 80 ? "#00e5a0" : mealPct <= 100 ? "#ffb347" : "#ff6b6b";
+  const fitLabel =
+    mealPct <= 80
+      ? "Sesuai target"
+      : mealPct <= 100
+        ? "Pas di target"
+        : "Melebihi target";
+
+  // Saran porsi per goal
+  const portionTips = {
+    diet: {
+      icon: "⚖️",
+      tip: "Kurangi porsi nasi/karbo, tambah porsi sayur. Makan perlahan agar cepat kenyang.",
+    },
+    healthy: {
+      icon: "🍱",
+      tip: "Ikuti porsi rekomendasi. Tambahkan salad atau buah sebagai pelengkap.",
+    },
+    bulking: {
+      icon: "💪",
+      tip: "Tambah 1–2 porsi jika masih di bawah target kalori harian. Konsumsi dalam 2 jam setelah latihan.",
+    },
+  }[state.goal];
+
+  document.getElementById("detail-reason").innerHTML = `
+    <div class="detail-fit-wrap">
+      <div class="detail-fit-header">
+        <span>🎯 Kesesuaian dengan Target Makan</span>
+        <span class="detail-fit-badge" style="color:${fitColor};background:${fitColor}15;border-color:${fitColor}30">${fitLabel}</span>
+      </div>
+      <div class="detail-fit-bar-track">
+        <div class="detail-fit-bar-fill" data-fit="${Math.min(mealPct, 100)}" style="width:0%;background:${fitColor}"></div>
+      </div>
+      <div class="detail-fit-note">${f.calories} kcal dari target ${state.mealCalories} kcal (${mealPct}%)</div>
+    </div>
+    <div class="detail-reason-box">
+      <strong>Mengapa ini?</strong> ${reasons[state.goal]}
+    </div>
+    <div class="detail-labels-wrap">
+      ${(f.labels || [])
+        .map((l, i) => {
+          const colors = ["#00e5a0", "#00b4f5", "#ff6b6b"];
+          return `<span class="detail-label-tag" style="color:${colors[i % 3]};border-color:${colors[i % 3]}30;background:${colors[i % 3]}10">${l}</span>`;
+        })
+        .join("")}
+    </div>
+    <div class="detail-portion-tip">
+      <span class="portion-tip-icon">${portionTips.icon}</span>
+      <span>${portionTips.tip}</span>
+    </div>
+  `;
   document.getElementById("detail-desc").textContent = f.desc;
 
   navigate("detail-section", "result-section");
@@ -1207,6 +1678,8 @@ function openDetail(idx) {
       .forEach((el) => {
         el.style.width = el.dataset.width + "%";
       });
+    const fitBar = document.querySelector(".detail-fit-bar-fill");
+    if (fitBar) fitBar.style.width = fitBar.dataset.fit + "%";
   }, 300);
 
   // Reset AR state saat buka detail baru
@@ -1217,7 +1690,8 @@ function openDetail(idx) {
   document.getElementById("model-3d").style.display = "none";
   document.getElementById("model-3d").removeAttribute("src");
   document.getElementById("model-3d").src = "";
-  document.getElementById("ar-hint").textContent = "🤚 Drag untuk putar • Scroll untuk zoom";
+  document.getElementById("ar-hint").textContent =
+    "🤚 Drag untuk putar • Scroll untuk zoom";
   // Destroy model-viewer container
   const container = document.getElementById("model-3d-container");
   if (container) {
@@ -1232,7 +1706,7 @@ function openDetail(idx) {
   }
 
   // Save to riwayat
-  addRiwayat(state.currentUser, {
+  fsAddRiwayat(state.currentUser, {
     type: "food",
     name: f.name,
     calories: f.calories,
@@ -1308,7 +1782,8 @@ async function toggleAR() {
         mv.setAttribute("auto-rotate", "");
         mv.setAttribute("camera-controls", "");
         mv.setAttribute("shadow-intensity", "1");
-        mv.style.cssText = "width:100%;height:100%;background:transparent;position:absolute;top:0;left:0;z-index:10;";
+        mv.style.cssText =
+          "width:100%;height:100%;background:transparent;position:absolute;top:0;left:0;z-index:10;";
         container.appendChild(mv);
 
         // Buat label DILUAR model-viewer tapi di dalam container
@@ -1316,9 +1791,27 @@ async function toggleAR() {
         const f = state.currentFood;
         if (f) {
           const labelStyles = [
-            { top: "20%",  right: "10%", delay: "0.3s",  bg: "rgba(0,229,160,0.9)",  shadow: "rgba(0,229,160,0.5)"  },
-            { top: "60%",  left:  "8%",  delay: "0.8s",  bg: "rgba(0,180,245,0.9)",  shadow: "rgba(0,180,245,0.5)"  },
-            { bottom:"15%",right: "12%", delay: "1.3s",  bg: "rgba(255,107,107,0.9)",shadow: "rgba(255,107,107,0.5)"},
+            {
+              top: "20%",
+              right: "10%",
+              delay: "0.3s",
+              bg: "rgba(0,229,160,0.9)",
+              shadow: "rgba(0,229,160,0.5)",
+            },
+            {
+              top: "60%",
+              left: "8%",
+              delay: "0.8s",
+              bg: "rgba(0,180,245,0.9)",
+              shadow: "rgba(0,180,245,0.5)",
+            },
+            {
+              bottom: "15%",
+              right: "12%",
+              delay: "1.3s",
+              bg: "rgba(255,107,107,0.9)",
+              shadow: "rgba(255,107,107,0.5)",
+            },
           ];
           f.labels.forEach((label, i) => {
             if (!label) return;
@@ -1327,10 +1820,10 @@ async function toggleAR() {
             el.textContent = label;
             const s = labelStyles[i];
             el.style.cssText = [
-              s.top    ? `top:${s.top};`    : "",
+              s.top ? `top:${s.top};` : "",
               s.bottom ? `bottom:${s.bottom};` : "",
-              s.left   ? `left:${s.left};`  : "",
-              s.right  ? `right:${s.right};`: "",
+              s.left ? `left:${s.left};` : "",
+              s.right ? `right:${s.right};` : "",
               `background:${s.bg};`,
               `box-shadow:0 2px 12px ${s.shadow};`,
               `animation-delay:${s.delay};`,
@@ -1459,23 +1952,17 @@ function nowTime() {
   });
 }
 
-function initChatForUser(username) {
-  chatInitialized = false;
-  chatMessages = [];
-  renderChatFromStorage();
-}
-
-function renderChatFromStorage() {
-  const username = state.currentUser;
-  if (!username) return;
-  const stored = getChatHistory(username);
+async function renderChatFromStorage() {
+  const uid = state.currentUser;
+  if (!uid) return;
+  const stored = await fsGetChat(uid);
+  chatMessages = stored;
   const msgsEl = document.getElementById("chat-messages");
 
   if (!chatInitialized) {
     chatInitialized = true;
     msgsEl.innerHTML = "";
 
-    // Date divider
     const div = document.createElement("div");
     div.className = "chat-date-divider";
     div.textContent = "Hari ini";
@@ -1493,22 +1980,7 @@ function renderChatFromStorage() {
         "bot",
         nowTime(),
       );
-      const welcomeMsgs = [
-        {
-          role: "bot",
-          text: "Halo! 👋 Aku NutriBot AI, asisten nutrisi pintarmu. Tanyakan apa saja tentang makanan, kalori, tips diet, atau rekomendasi meal plan!",
-          time: nowTime(),
-        },
-        {
-          role: "bot",
-          text: 'Coba tanya: "Apa manfaat protein?" atau "Berapa kalori nasi goreng?" 🥗',
-          time: nowTime(),
-        },
-      ];
-      saveChatHistory(username, welcomeMsgs);
-      chatMessages = welcomeMsgs;
     } else {
-      chatMessages = stored;
       stored.forEach((m) => appendMsgEl(m.text, m.role, m.time));
     }
 
@@ -1561,7 +2033,14 @@ async function sendChat() {
 
   const userTime = nowTime();
   appendMsgEl(text, "user", userTime);
-  chatMessages.push({ role: "user", text, time: userTime });
+  const userEntry = {
+    role: "user",
+    text,
+    time: userTime,
+    rawTime: new Date().toISOString(),
+  };
+  chatMessages.push(userEntry);
+  fsSaveChat(state.currentUser, userEntry);
 
   isBotTyping = true;
   appendTypingIndicator();
@@ -1597,19 +2076,36 @@ async function sendChat() {
     removeTypingIndicator();
     const botTime = nowTime();
     appendMsgEl(reply, "bot", botTime);
-    chatMessages.push({ role: "bot", text: reply, time: botTime });
-    saveChatHistory(state.currentUser, chatMessages);
+    const botEntry = {
+      role: "bot",
+      text: reply,
+      time: botTime,
+      rawTime: new Date().toISOString(),
+    };
+    chatMessages.push(botEntry);
+    fsSaveChat(state.currentUser, botEntry);
   } catch (e) {
     removeTypingIndicator();
     const errTime = nowTime();
-    let errMsg = "Maaf, koneksi AI bermasalah saat ini. Pastikan server backend sudah berjalan dan coba lagi! 🔄";
+    let errMsg =
+      "Maaf, koneksi AI bermasalah saat ini. Pastikan server backend sudah berjalan dan coba lagi! 🔄";
     // Tampilkan pesan lebih spesifik jika server tidak bisa dihubungi
-    if (e.message.includes("Failed to fetch") || e.message.includes("NetworkError")) {
-      errMsg = "Tidak bisa terhubung ke server. Pastikan `node server.js` sudah berjalan di terminal! 🖥️";
+    if (
+      e.message.includes("Failed to fetch") ||
+      e.message.includes("NetworkError")
+    ) {
+      errMsg =
+        "Tidak bisa terhubung ke server. Pastikan `node server.js` sudah berjalan di terminal! 🖥️";
     }
     appendMsgEl(errMsg, "bot", errTime);
-    chatMessages.push({ role: "bot", text: errMsg, time: errTime });
-    saveChatHistory(state.currentUser, chatMessages);
+    const errEntry = {
+      role: "bot",
+      text: errMsg,
+      time: errTime,
+      rawTime: new Date().toISOString(),
+    };
+    chatMessages.push(errEntry);
+    fsSaveChat(state.currentUser, errEntry);
   }
 
   isBotTyping = false;
@@ -1622,9 +2118,15 @@ function sendChip(btn) {
   sendChat();
 }
 
-function clearChat() {
+async function initChatForUser(uid) {
+  chatMessages = await fsGetChat(uid);
+  chatInitialized = false;
+  renderChatFromStorage();
+}
+
+async function clearChat() {
   if (!state.currentUser) return;
-  LS.remove("sm_chat_" + state.currentUser);
+  await fsClearChat(state.currentUser);
   chatMessages = [];
   chatInitialized = false;
   document.getElementById("chat-messages").innerHTML = "";
@@ -1633,23 +2135,57 @@ function clearChat() {
 }
 
 // ─── APP INIT ─────────────────────────────────────────────────
-function initApp() {
-  const session = getSession();
-  if (session) {
-    const userData = getUserData(session);
-    if (userData) {
-      state.currentUser = session;
-      document.getElementById("auth-wrapper").style.display = "none";
-      document.getElementById("app-wrapper").style.display = "block";
-      updateProfileUI(session, userData);
-      initChatForUser(session);
-      switchTab("home");
-      return;
-    }
-  }
-  // Show auth
+
+// Expose semua fungsi ke global (wajib karena pakai type="module")
+window.showAuth = showAuth;
+window.togglePw = togglePw;
+window.doLogin = doLogin;
+window.doRegister = doRegister;
+window.doLogout = doLogout;
+window.confirmLogout = confirmLogout;
+window.switchTab = switchTab;
+window.navigate = navigate;
+window.selectGoal = selectGoal;
+window.selectMeal = selectMeal;
+window.goToStep2 = goToStep2;
+window.backToStep1 = backToStep1;
+window.goToInput = goToInput;
+window.selectGender = selectGender;
+window.selectActivity = selectActivity;
+window.confirmInput = confirmInput;
+window.openDetail = openDetail;
+window.toggleAR = toggleAR;
+window.startCamera = startCamera;
+window.stopCamera = stopCamera;
+window.showProfileSub = showProfileSub;
+window.hideProfileSub = hideProfileSub;
+window.pickEmoji = pickEmoji;
+window.saveProfile = saveProfile;
+window.renderRiwayat = renderRiwayat;
+window.setRiwayatFilter = setRiwayatFilter;
+window.filterRiwayat = filterRiwayat;
+window.deleteRiwayatItem = deleteRiwayatItem;
+window.clearAllRiwayat = clearAllRiwayat;
+window.sendChat = sendChat;
+window.sendChip = sendChip;
+window.clearChat = clearChat;
+
+// Beritahu HTML bahwa module sudah siap
+document.dispatchEvent(new Event("moduleready"));
+
+document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("auth-wrapper").style.display = "block";
   document.getElementById("app-wrapper").style.display = "none";
-}
 
-document.addEventListener("DOMContentLoaded", initApp);
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      await loginSuccess(user);
+    } else {
+      state.currentUser = null;
+      state.currentUsername = null;
+      document.getElementById("auth-wrapper").style.display = "block";
+      document.getElementById("app-wrapper").style.display = "none";
+      showAuth("login-screen");
+    }
+  });
+});

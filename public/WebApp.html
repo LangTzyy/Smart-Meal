@@ -9,7 +9,116 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="css/Main.css" />
-    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+    <script
+      type="module"
+      src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"
+    ></script>
+    <style>
+      /* ══════════════════════════════════════
+         CLOCK WIDGET — Home Step1
+      ══════════════════════════════════════ */
+      .clock-widget {
+        position: relative;
+        width: 100%;
+        height: 140px;
+        overflow: hidden;
+        border-radius: 20px;
+        margin-bottom: 24px;
+        background-image: url("assets/image/bg2.png");
+        background-size: cover;
+        background-position: center 40%;
+      }
+
+      .clock-bg-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          180deg,
+          rgba(0, 5, 15, 0.15) 0%,
+          rgba(0, 5, 15, 0.35) 100%
+        );
+      }
+
+      .clock-content {
+        position: relative;
+        z-index: 2;
+        padding: 22px 22px 20px;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+      }
+
+      .clock-top-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 6px;
+      }
+
+      .clock-weather-icon {
+        font-size: 32px;
+        line-height: 1;
+        filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.4));
+      }
+
+      .clock-time-wrap {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        line-height: 1;
+      }
+
+      .clock-time {
+        font-family: "Syne", sans-serif;
+        font-size: clamp(8px, 8vw, 40px);
+        font-weight: 800;
+        color: #fff;
+        letter-spacing: 5px;
+        line-height: 1;
+        text-shadow: 0 2px 16px rgba(0, 0, 0, 0.5);
+      }
+
+      .clock-seconds {
+        font-family: "Syne", sans-serif;
+        font-size: clamp(18px, 5vw, 26px);
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.85);
+        margin-top: 8px;
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+      }
+
+      .clock-date {
+        font-size: 15px;
+        font-family: "Syne", sans-serif;
+        color: rgba(255, 255, 255, 0.92);
+        font-weight: 700;
+        text-shadow: 0 1px 8px rgba(0, 0, 0, 0.5);
+        margin-bottom: 4px;
+        letter-spacing: 0.2px;
+      }
+
+      .clock-greeting {
+        font-size: 15px;
+        color: rgba(255, 255, 255, 0.88);
+        font-weight: 700;
+        font-family: "Syne", sans-serif;
+        text-shadow: 0 1px 8px rgba(0, 0, 0, 0.5);
+      }
+
+      /* Responsive */
+      @media (max-width: 400px) {
+        .clock-widget {
+          height: 160px;
+          border-radius: 16px;
+        }
+        .clock-content {
+          padding: 16px 14px;
+        }
+      }
+    </style>
   </head>
   <body>
     <div class="toast" id="toast"></div>
@@ -20,7 +129,12 @@
         <div class="auth-bg-orb orb1"></div>
         <div class="auth-bg-orb orb2"></div>
         <div class="auth-inner">
-          <div class="auth-logo">SmartMeal</div>
+          <div class="logo">
+            <a href="index.html">
+              <img src="assets/image/logo2.png" alt="logo" class="logo-img" />
+            </a>
+            <span>SmartMeal</span>
+          </div>
           <div class="auth-tagline">AI-Powered Nutrition Planner</div>
           <div class="auth-card">
             <h2 class="auth-title">Selamat Datang 👋</h2>
@@ -73,7 +187,12 @@
         <div class="auth-bg-orb orb1"></div>
         <div class="auth-bg-orb orb2"></div>
         <div class="auth-inner">
-          <div class="auth-logo">SmartMeal</div>
+          <div class="logo">
+            <a href="index.html">
+              <img src="assets/image/logo2.png" alt="logo" class="logo-img" />
+            </a>
+            <span>SmartMeal</span>
+          </div>
           <div class="auth-card">
             <h2 class="auth-title">Daftar Akun ✨</h2>
             <p class="auth-sub">
@@ -152,7 +271,12 @@
     <div id="app-wrapper" style="display: none">
       <section class="section active" id="home-section">
         <div class="topbar">
-          <div class="logo">SmartMeal</div>
+          <div class="logo">
+            <a href="index.html">
+              <img src="assets/image/logo2.png" alt="logo" class="logo-img" />
+            </a>
+            <span>SmartMeal</span>
+          </div>
           <div class="topbar-right">
             <div class="topbar-greeting" id="topbar-greeting"></div>
             <div
@@ -165,6 +289,28 @@
           </div>
         </div>
         <div class="content">
+          <!-- ══ CLOCK WIDGET ══ -->
+          <div class="clock-widget" id="clock-widget">
+            <div class="clock-bg-overlay"></div>
+            <div class="clock-content">
+              <div class="clock-top-row">
+                <span class="clock-weather-icon" id="clock-weather-icon"
+                  >🌤️</span
+                >
+                <div class="clock-time-wrap">
+                  <span class="clock-time" id="clock-time">00:00</span>
+                  <span class="clock-seconds" id="clock-seconds">00</span>
+                </div>
+              </div>
+              <div class="clock-date" id="clock-date">
+                Senin, 1 Januari 2026
+              </div>
+              <div class="clock-greeting" id="clock-greeting-widget">
+                Halo, Selamat pagi
+              </div>
+            </div>
+          </div>
+
           <div id="home-step1">
             <div class="hero-badge">
               <div class="pulse-dot"></div>
@@ -258,7 +404,12 @@
 
       <section class="section" id="input-section">
         <div class="topbar">
-          <div class="logo">SmartMeal</div>
+          <div class="logo">
+            <a href="index.html">
+              <img src="assets/image/logo2.png" alt="logo" class="logo-img" />
+            </a>
+            <span>SmartMeal</span>
+          </div>
           <div class="breadcrumb" id="input-breadcrumb"></div>
         </div>
         <div class="content">
@@ -375,7 +526,12 @@
 
       <section class="section" id="result-section">
         <div class="topbar">
-          <div class="logo">SmartMeal</div>
+          <div class="logo">
+            <a href="index.html">
+              <img src="assets/image/logo2.png" alt="logo" class="logo-img" />
+            </a>
+            <span>SmartMeal</span>
+          </div>
           <div class="breadcrumb" id="result-breadcrumb"></div>
         </div>
         <div class="content wide">
@@ -404,16 +560,39 @@
 
       <section class="section" id="detail-section">
         <div class="topbar">
-          <div class="logo">SmartMeal</div>
+          <div class="logo">
+            <a href="index.html">
+              <img src="assets/image/logo2.png" alt="logo" class="logo-img" />
+            </a>
+            <span>SmartMeal</span>
+          </div>
           <div class="breadcrumb" id="detail-breadcrumb"></div>
         </div>
         <div class="content">
           <div class="ar-viewport" id="ar-viewport">
             <!-- Kamera -->
-            <video id="ar-video" autoplay playsinline muted style="display:none;"></video>
+            <video
+              id="ar-video"
+              autoplay
+              playsinline
+              muted
+              style="display: none"
+            ></video>
 
             <!-- Container model 3D (dibuat dinamis via JS) -->
-            <div id="model-3d-container" style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:10;display:none;overflow:hidden;">
+            <div
+              id="model-3d-container"
+              style="
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                z-index: 10;
+                display: none;
+                overflow: hidden;
+              "
+            >
               <!-- model-viewer dibuat ulang setiap toggle agar rotate/zoom selalu aktif -->
             </div>
 
@@ -425,7 +604,9 @@
               <div class="ar-label" id="ar-label3"></div>
             </div>
 
-            <div class="ar-hint" id="ar-hint">🤚 Drag untuk putar • Scroll untuk zoom</div>
+            <div class="ar-hint" id="ar-hint">
+              🤚 Drag untuk putar • Scroll untuk zoom
+            </div>
           </div>
           <div class="detail-info" id="detail-info">
             <div class="detail-name" id="detail-name"></div>
@@ -441,7 +622,11 @@
               >
                 ← Kembali
               </button>
-              <button class="btn btn-primary" id="btn-ar-toggle" onclick="toggleAR()">
+              <button
+                class="btn btn-primary"
+                id="btn-ar-toggle"
+                onclick="toggleAR()"
+              >
                 📷 Aktifkan AR
               </button>
             </div>
@@ -451,7 +636,12 @@
 
       <section class="section chatbot" id="chat-section">
         <div class="topbar">
-          <div class="logo">SmartMeal</div>
+          <div class="logo">
+            <a href="index.html">
+              <img src="assets/image/logo2.png" alt="logo" class="logo-img" />
+            </a>
+            <span>SmartMeal</span>
+          </div>
           <div class="breadcrumb">AI Assistant</div>
         </div>
         <div class="chat-wrapper">
@@ -462,9 +652,7 @@
             </div>
             <div class="chat-header-info">
               <div class="chat-header-name">NutriBot AI</div>
-              <div class="chat-header-status">
-                Online · Powered by Groq AI
-              </div>
+              <div class="chat-header-status">Online · Powered by Groq AI</div>
             </div>
             <button
               class="chat-clear-btn"
@@ -524,7 +712,12 @@
 
       <section class="section" id="profile-section">
         <div class="topbar">
-          <div class="logo">SmartMeal</div>
+          <div class="logo">
+            <a href="index.html">
+              <img src="assets/image/logo2.png" alt="logo" class="logo-img" />
+            </a>
+            <span>SmartMeal</span>
+          </div>
           <div class="breadcrumb">Profile</div>
         </div>
         <div class="content" id="profile-main-view">
@@ -734,15 +927,46 @@
               placeholder="Cari nama makanan atau goal..."
               oninput="filterRiwayat()"
             />
-            <button class="riwayat-clear-btn" id="riwayat-clear-btn" onclick="clearAllRiwayat()" title="Hapus semua riwayat">🗑️</button>
+            <button
+              class="riwayat-clear-btn"
+              id="riwayat-clear-btn"
+              onclick="clearAllRiwayat()"
+              title="Hapus semua riwayat"
+            >
+              🗑️
+            </button>
           </div>
 
           <!-- Filter Tanggal -->
           <div class="riwayat-filter-row">
-            <button class="riwayat-filter-btn active" id="filter-all" onclick="setRiwayatFilter('all', this)">Semua</button>
-            <button class="riwayat-filter-btn" id="filter-today" onclick="setRiwayatFilter('today', this)">Hari Ini</button>
-            <button class="riwayat-filter-btn" id="filter-week" onclick="setRiwayatFilter('week', this)">7 Hari</button>
-            <button class="riwayat-filter-btn" id="filter-month" onclick="setRiwayatFilter('month', this)">Bulan Ini</button>
+            <button
+              class="riwayat-filter-btn active"
+              id="filter-all"
+              onclick="setRiwayatFilter('all', this)"
+            >
+              Semua
+            </button>
+            <button
+              class="riwayat-filter-btn"
+              id="filter-today"
+              onclick="setRiwayatFilter('today', this)"
+            >
+              Hari Ini
+            </button>
+            <button
+              class="riwayat-filter-btn"
+              id="filter-week"
+              onclick="setRiwayatFilter('week', this)"
+            >
+              7 Hari
+            </button>
+            <button
+              class="riwayat-filter-btn"
+              id="filter-month"
+              onclick="setRiwayatFilter('month', this)"
+            >
+              Bulan Ini
+            </button>
           </div>
 
           <div id="riwayat-list" class="riwayat-list"></div>
@@ -801,6 +1025,156 @@
       </nav>
     </div>
 
-    <script src="js/Main.js"></script>
+    <script>
+      /* ══ CLOCK WIDGET ══ */
+      (function initClock() {
+        const DAYS = [
+          "Minggu",
+          "Senin",
+          "Selasa",
+          "Rabu",
+          "Kamis",
+          "Jumat",
+          "Sabtu",
+        ];
+        const MONTHS = [
+          "Januari",
+          "Februari",
+          "Maret",
+          "April",
+          "Mei",
+          "Juni",
+          "Juli",
+          "Agustus",
+          "September",
+          "Oktober",
+          "November",
+          "Desember",
+        ];
+
+        function pad(n) {
+          return String(n).padStart(2, "0");
+        }
+
+        function getGreetingPhrase(h) {
+          if (h >= 4 && h < 11) return "Selamat pagi";
+          if (h >= 11 && h < 15) return "Selamat siang";
+          if (h >= 15 && h < 18) return "Selamat sore";
+          return "Selamat malam";
+        }
+
+        function getWeatherIcon(h) {
+          if (h >= 6 && h < 12) return "🌤️";
+          if (h >= 12 && h < 17) return "☀️";
+          if (h >= 17 && h < 20) return "🌅";
+          return "🌙";
+        }
+
+        function tick() {
+          const now = new Date();
+          const h = now.getHours();
+          const m = now.getMinutes();
+          const s = now.getSeconds();
+          const day = DAYS[now.getDay()];
+          const date = now.getDate();
+          const mon = MONTHS[now.getMonth()];
+          const yr = now.getFullYear();
+
+          const elTime = document.getElementById("clock-time");
+          const elSec = document.getElementById("clock-seconds");
+          const elDate = document.getElementById("clock-date");
+          const elGreet = document.getElementById("clock-greeting-widget");
+          const elIcon = document.getElementById("clock-weather-icon");
+
+          if (elTime) elTime.textContent = pad(h) + ":" + pad(m);
+          if (elSec) elSec.textContent = pad(s);
+          if (elDate) elDate.textContent = `${day}, ${date} ${mon} ${yr}`;
+          if (elIcon) elIcon.textContent = getWeatherIcon(h);
+
+          // Greeting — username comes from window.__clockUsername if set
+          if (elGreet) {
+            const uname = window.__clockUsername || "";
+            const phrase = getGreetingPhrase(h);
+            elGreet.textContent = uname
+              ? `Halo, ${phrase} ${uname}`
+              : `Halo, ${phrase}`;
+          }
+        }
+
+        tick();
+        setInterval(tick, 1000);
+
+        // Expose setter so Main.js can push username after login
+        window.setClockUsername = function (name) {
+          window.__clockUsername = name;
+          tick();
+        };
+      })();
+    </script>
+    <script>
+      // Proxy global — fungsi-fungsi ini akan tersedia setelah module load
+      // Semua onclick/onkeydown di HTML memanggil proxy ini
+      const fnProxy = (name, ...args) => {
+        if (window[name]) return window[name](...args);
+        document.addEventListener(
+          "moduleready",
+          () => window[name]?.(...args),
+          { once: true },
+        );
+      };
+      const doLogin = (...a) => fnProxy("doLogin", ...a);
+      const doRegister = (...a) => fnProxy("doRegister", ...a);
+      const doLogout = (...a) => fnProxy("doLogout", ...a);
+      const confirmLogout = (...a) => fnProxy("confirmLogout", ...a);
+      const showAuth = (...a) => fnProxy("showAuth", ...a);
+      const togglePw = (...a) => fnProxy("togglePw", ...a);
+      const switchTab = (...a) => fnProxy("switchTab", ...a);
+      const selectGoal = (...a) => fnProxy("selectGoal", ...a);
+      const selectMeal = (...a) => fnProxy("selectMeal", ...a);
+      const calculateCalories = (...a) => fnProxy("calculateCalories", ...a);
+      const goBackToGoal = (...a) => fnProxy("goBackToGoal", ...a);
+      const openDetail = (...a) => fnProxy("openDetail", ...a);
+      const goBack = (...a) => fnProxy("goBack", ...a);
+      const toggleAR = (...a) => fnProxy("toggleAR", ...a);
+      const startCamera = (...a) => fnProxy("startCamera", ...a);
+      const stopCamera = (...a) => fnProxy("stopCamera", ...a);
+      const rotateModel = (...a) => fnProxy("rotateModel", ...a);
+      const scaleModel = (...a) => fnProxy("scaleModel", ...a);
+      const showProfileSub = (...a) => fnProxy("showProfileSub", ...a);
+      const hideProfileSub = (...a) => fnProxy("hideProfileSub", ...a);
+      const pickEmoji = (...a) => fnProxy("pickEmoji", ...a);
+      const saveProfile = (...a) => fnProxy("saveProfile", ...a);
+      const renderRiwayat = (...a) => fnProxy("renderRiwayat", ...a);
+      const setRiwayatFilter = (...a) => fnProxy("setRiwayatFilter", ...a);
+      const filterRiwayat = (...a) => fnProxy("filterRiwayat", ...a);
+      const deleteRiwayatItem = (...a) => fnProxy("deleteRiwayatItem", ...a);
+      const clearAllRiwayat = (...a) => fnProxy("clearAllRiwayat", ...a);
+      const sendChat = (...a) => fnProxy("sendChat", ...a);
+      const sendChip = (...a) => fnProxy("sendChip", ...a);
+      const clearChat = (...a) => fnProxy("clearChat", ...a);
+
+      // ── Ambil username dari topbar-greeting saat diupdate oleh Main.js ──
+      (function () {
+        function parseUsernameFromGreeting(text) {
+          // Format dari Main.js: "Hi, username!"
+          const m = text.match(/^Hi,\s+(.+)!$/);
+          return m ? m[1].trim() : null;
+        }
+        const el = document.getElementById("topbar-greeting");
+        if (el) {
+          const obs = new MutationObserver(() => {
+            const uname = parseUsernameFromGreeting(el.textContent || "");
+            if (uname && window.setClockUsername)
+              window.setClockUsername(uname);
+          });
+          obs.observe(el, {
+            childList: true,
+            characterData: true,
+            subtree: true,
+          });
+        }
+      })();
+    </script>
+    <script type="module" src="js/Main.js"></script>
   </body>
 </html>
