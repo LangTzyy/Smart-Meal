@@ -607,6 +607,8 @@ async function loginSuccess(user) {
   updateProfileUI(state.currentUsername, userData);
   await initChatForUser(user.uid);
   showToast("Selamat datang, " + (userData?.username || user.email) + "! 👋", "success");
+  // Update clock widget dengan username
+  if (window.setClockUsername) window.setClockUsername(state.currentUsername);
   switchTab("home");
 }
 
