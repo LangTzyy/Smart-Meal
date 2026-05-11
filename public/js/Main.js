@@ -12,10 +12,7 @@ import {
   signOut,
   onAuthStateChanged,
   updatePassword,
-<<<<<<< HEAD
   updateEmail,
-=======
->>>>>>> 2f0435d5610d16ba796c26fcf37837e14abaa75e
   EmailAuthProvider,
   reauthenticateWithCredential,
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
@@ -30,10 +27,7 @@ import {
   getDocs,
   deleteDoc,
   query,
-<<<<<<< HEAD
   where,
-=======
->>>>>>> 2f0435d5610d16ba796c26fcf37837e14abaa75e
   orderBy,
   limit,
   serverTimestamp,
@@ -435,13 +429,8 @@ const state = {
   currentFood: null,
   history: ["home-section"],
   cameraStream: null,
-<<<<<<< HEAD
   currentUser: null,      // Firebase UID
   currentUsername: null,  // display name
-=======
-  currentUser: null, // Firebase UID
-  currentUsername: null, // display name
->>>>>>> 2f0435d5610d16ba796c26fcf37837e14abaa75e
 };
 
 // ─── GLOBAL VARIABLES ─────────────────────────
@@ -459,15 +448,12 @@ let chatInitialized = false;
 
 let currentFilteredFoods = [];
 
-<<<<<<< HEAD
 // ─── UTILITIES ────────────────────────────────────────────────
 function debounce(fn, delay) {
   let timer;
   return (...args) => { clearTimeout(timer); timer = setTimeout(() => fn(...args), delay); };
 }
 
-=======
->>>>>>> 2f0435d5610d16ba796c26fcf37837e14abaa75e
 // ─── LOCAL STORAGE HELPERS (tetap untuk state sementara) ──────
 const LS = {
   get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
@@ -480,13 +466,7 @@ async function fsGetUser(uid) {
   try {
     const snap = await getDoc(doc(db, "users", uid));
     return snap.exists() ? snap.data() : null;
-<<<<<<< HEAD
   } catch { return null; }
-=======
-  } catch {
-    return null;
-  }
->>>>>>> 2f0435d5610d16ba796c26fcf37837e14abaa75e
 }
 
 async function fsSetUser(uid, data) {
@@ -495,23 +475,10 @@ async function fsSetUser(uid, data) {
 
 async function fsGetRiwayat(uid) {
   try {
-<<<<<<< HEAD
     const q = query(collection(db, "riwayat", uid, "entries"), orderBy("rawTime", "desc"), limit(50));
     const snap = await getDocs(q);
     return snap.docs.map(d => ({ ...d.data(), _docId: d.id }));
   } catch { return []; }
-=======
-    const q = query(
-      collection(db, "riwayat", uid, "entries"),
-      orderBy("rawTime", "desc"),
-      limit(50),
-    );
-    const snap = await getDocs(q);
-    return snap.docs.map((d) => ({ ...d.data(), _docId: d.id }));
-  } catch {
-    return [];
-  }
->>>>>>> 2f0435d5610d16ba796c26fcf37837e14abaa75e
 }
 
 async function fsAddRiwayat(uid, entry) {
@@ -524,33 +491,16 @@ async function fsDeleteRiwayat(uid, docId) {
 
 async function fsDeleteAllRiwayat(uid) {
   const snap = await getDocs(collection(db, "riwayat", uid, "entries"));
-<<<<<<< HEAD
   const dels = snap.docs.map(d => deleteDoc(d.ref));
-=======
-  const dels = snap.docs.map((d) => deleteDoc(d.ref));
->>>>>>> 2f0435d5610d16ba796c26fcf37837e14abaa75e
   await Promise.all(dels);
 }
 
 async function fsGetChat(uid) {
   try {
-<<<<<<< HEAD
     const q = query(collection(db, "chats", uid, "messages"), orderBy("rawTime", "asc"), limit(60));
     const snap = await getDocs(q);
     return snap.docs.map(d => ({ ...d.data(), _docId: d.id }));
   } catch { return []; }
-=======
-    const q = query(
-      collection(db, "chats", uid, "messages"),
-      orderBy("rawTime", "asc"),
-      limit(60),
-    );
-    const snap = await getDocs(q);
-    return snap.docs.map((d) => ({ ...d.data(), _docId: d.id }));
-  } catch {
-    return [];
-  }
->>>>>>> 2f0435d5610d16ba796c26fcf37837e14abaa75e
 }
 
 async function fsSaveChat(uid, msg) {
@@ -559,11 +509,7 @@ async function fsSaveChat(uid, msg) {
 
 async function fsClearChat(uid) {
   const snap = await getDocs(collection(db, "chats", uid, "messages"));
-<<<<<<< HEAD
   await Promise.all(snap.docs.map(d => deleteDoc(d.ref)));
-=======
-  await Promise.all(snap.docs.map((d) => deleteDoc(d.ref)));
->>>>>>> 2f0435d5610d16ba796c26fcf37837e14abaa75e
 }
 
 // ─── TOAST ────────────────────────────────────────────────────
@@ -593,7 +539,6 @@ async function doLogin() {
   if (!id || !pw) { showToast("Lengkapi semua field!", "error"); return; }
 
   const loginBtn = document.querySelector("#login-screen .btn-primary");
-<<<<<<< HEAD
   if (loginBtn) { loginBtn.textContent = "Masuk..."; loginBtn.disabled = true; }
 
   try {
@@ -604,41 +549,6 @@ async function doLogin() {
       const snap = await getDocs(q);
       if (snap.empty) { showToast("Username tidak ditemukan!", "error"); return; }
       email = snap.docs[0].data().email;
-=======
-  if (loginBtn) {
-    loginBtn.textContent = "Masuk...";
-    loginBtn.disabled = true;
-  }
-
-  try {
-    // Support login pakai username → ambil email dari Firestore
-    let email = id;
-    if (!id.includes("@")) {
-      const snap = await getDocs(collection(db, "users"));
-      const found = snap.docs.find((d) => d.data().username === id);
-      if (!found) {
-        showToast("Username tidak ditemukan!", "error");
-        return;
-      }
-      email = found.data().email;
-    }
-    const cred = await signInWithEmailAndPassword(auth, email, pw);
-    // onAuthStateChanged akan handle loginSuccess
-  } catch (e) {
-    const msg =
-      e.code === "auth/invalid-credential"
-        ? "Email/password salah!"
-        : e.code === "auth/user-not-found"
-          ? "Akun tidak ditemukan!"
-          : e.code === "auth/too-many-requests"
-            ? "Terlalu banyak percobaan. Coba lagi nanti!"
-            : "Login gagal: " + e.message;
-    showToast(msg, "error");
-  } finally {
-    if (loginBtn) {
-      loginBtn.textContent = "Masuk →";
-      loginBtn.disabled = false;
->>>>>>> 2f0435d5610d16ba796c26fcf37837e14abaa75e
     }
     await signInWithEmailAndPassword(auth, email, pw);
     // onAuthStateChanged akan handle loginSuccess
@@ -665,7 +575,6 @@ async function doRegister() {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showToast("Format email tidak valid!", "error"); return; }
 
   const regBtn = document.querySelector("#register-screen .btn-primary");
-<<<<<<< HEAD
   if (regBtn) { regBtn.textContent = "Mendaftar..."; regBtn.disabled = true; }
 
   try {
@@ -676,52 +585,16 @@ async function doRegister() {
 
     const cred = await createUserWithEmailAndPassword(auth, email, pw);
     const joined = new Date().toLocaleDateString("id-ID", { month: "long", year: "numeric" });
-=======
-  if (regBtn) {
-    regBtn.textContent = "Mendaftar...";
-    regBtn.disabled = true;
-  }
-
-  try {
-    // Cek username unik di Firestore
-    const snap = await getDocs(collection(db, "users"));
-    const taken = snap.docs.find((d) => d.data().username === username);
-    if (taken) {
-      showToast("Username sudah dipakai!", "error");
-      return;
-    }
-
-    const cred = await createUserWithEmailAndPassword(auth, email, pw);
-    const joined = new Date().toLocaleDateString("id-ID", {
-      month: "long",
-      year: "numeric",
-    });
->>>>>>> 2f0435d5610d16ba796c26fcf37837e14abaa75e
     await fsSetUser(cred.user.uid, { username, email, avatar: "👤", joined });
     showToast("Akun berhasil dibuat! 🎉", "success");
     // onAuthStateChanged akan handle loginSuccess
   } catch (e) {
-<<<<<<< HEAD
     const msg = e.code === "auth/email-already-in-use" ? "Email sudah terdaftar!" :
                 e.code === "auth/weak-password" ? "Password terlalu lemah!" :
                 "Registrasi gagal: " + e.message;
     showToast(msg, "error");
   } finally {
     if (regBtn) { regBtn.textContent = "Daftar"; regBtn.disabled = false; }
-=======
-    const msg =
-      e.code === "auth/email-already-in-use"
-        ? "Email sudah terdaftar!"
-        : e.code === "auth/weak-password"
-          ? "Password terlalu lemah!"
-          : "Registrasi gagal: " + e.message;
-    showToast(msg, "error");
-  } finally {
-    if (regBtn) {
-      regBtn.textContent = "Daftar";
-      regBtn.disabled = false;
-    }
->>>>>>> 2f0435d5610d16ba796c26fcf37837e14abaa75e
   }
 }
 
@@ -733,22 +606,12 @@ async function loginSuccess(user) {
   document.getElementById("app-wrapper").style.display = "block";
   updateProfileUI(state.currentUsername, userData);
   await initChatForUser(user.uid);
-<<<<<<< HEAD
   showToast("Selamat datang, " + (userData?.username || user.email) + "! 👋", "success");
-=======
-  showToast(
-    "Selamat datang, " + (userData?.username || user.email) + "! 👋",
-    "success",
-  );
->>>>>>> 2f0435d5610d16ba796c26fcf37837e14abaa75e
   switchTab("home");
 }
 
 async function doLogout() {
-<<<<<<< HEAD
   stopCamera(); // FIX: pastikan kamera AR berhenti sebelum logout
-=======
->>>>>>> 2f0435d5610d16ba796c26fcf37837e14abaa75e
   document.getElementById("logout-modal").style.display = "none";
   await signOut(auth);
   state.currentUser = null;
@@ -831,7 +694,6 @@ async function saveProfile() {
   try {
     const uid = state.currentUser;
     const avatar = tempAvatar || (await fsGetUser(uid))?.avatar || "👤";
-<<<<<<< HEAD
 
     const emailChanged = newEmail !== auth.currentUser.email;
 
@@ -869,43 +731,6 @@ async function saveProfile() {
                 e.code === "auth/requires-recent-login" ? "Silakan logout & login ulang dulu!" :
                 e.code === "auth/email-already-in-use" ? "Email sudah dipakai akun lain!" :
                 "Gagal simpan profil: " + e.message;
-=======
-    await fsSetUser(uid, { username: newUsername, email: newEmail, avatar });
-
-    if (newPw) {
-      const pwField = document.getElementById("edit-current-password");
-      const currentPw =
-        pwField?.value ||
-        prompt("Masukkan password saat ini untuk konfirmasi:");
-      if (!currentPw) {
-        showToast("Password lama diperlukan!", "error");
-        return;
-      }
-      const credential = EmailAuthProvider.credential(
-        auth.currentUser.email,
-        currentPw,
-      );
-      await reauthenticateWithCredential(auth.currentUser, credential);
-      await updatePassword(auth.currentUser, newPw);
-    }
-
-    state.currentUsername = newUsername;
-    tempAvatar = null;
-    updateProfileUI(newUsername, {
-      username: newUsername,
-      email: newEmail,
-      avatar,
-    });
-    showToast("Profil berhasil disimpan! ✓", "success");
-    hideProfileSub();
-  } catch (e) {
-    const msg =
-      e.code === "auth/wrong-password"
-        ? "Password lama salah!"
-        : e.code === "auth/requires-recent-login"
-          ? "Silakan logout & login ulang dulu!"
-          : "Gagal simpan profil: " + e.message;
->>>>>>> 2f0435d5610d16ba796c26fcf37837e14abaa75e
     showToast(msg, "error");
   }
 }
@@ -913,66 +738,27 @@ async function saveProfile() {
 // ─── RIWAYAT ──────────────────────────────────────────────────
 let riwayatFilter = "all";
 let _riwayatCache = [];
-<<<<<<< HEAD
 let _riwayatCacheDirty = true; // FIX: flag cache agar tidak re-fetch tiap buka tab
-=======
->>>>>>> 2f0435d5610d16ba796c26fcf37837e14abaa75e
 
 function setRiwayatFilter(filter, btn) {
   riwayatFilter = filter;
-  document
-    .querySelectorAll(".riwayat-filter-btn")
-    .forEach((b) => b.classList.remove("active"));
+  document.querySelectorAll(".riwayat-filter-btn").forEach((b) => b.classList.remove("active"));
   btn.classList.add("active");
   filterRiwayat();
 }
 
 function filterRiwayat() {
-<<<<<<< HEAD
   const query = (document.getElementById("riwayat-search")?.value || "").toLowerCase().trim();
-=======
-  const query = (document.getElementById("riwayat-search")?.value || "")
-    .toLowerCase()
-    .trim();
->>>>>>> 2f0435d5610d16ba796c26fcf37837e14abaa75e
   const now = new Date();
   const filtered = _riwayatCache.filter((r) => {
     if (riwayatFilter !== "all") {
       const rDate = new Date(r.rawTime || r.time);
-<<<<<<< HEAD
       if (riwayatFilter === "today" && rDate.toDateString() !== now.toDateString()) return false;
       if (riwayatFilter === "week") { const w = new Date(now); w.setDate(now.getDate() - 7); if (rDate < w) return false; }
       if (riwayatFilter === "month" && (rDate.getMonth() !== now.getMonth() || rDate.getFullYear() !== now.getFullYear())) return false;
     }
     if (query) {
       const s = ((r.name || "") + " " + (r.goal || "") + " " + (r.meal || "")).toLowerCase();
-=======
-      if (
-        riwayatFilter === "today" &&
-        rDate.toDateString() !== now.toDateString()
-      )
-        return false;
-      if (riwayatFilter === "week") {
-        const w = new Date(now);
-        w.setDate(now.getDate() - 7);
-        if (rDate < w) return false;
-      }
-      if (
-        riwayatFilter === "month" &&
-        (rDate.getMonth() !== now.getMonth() ||
-          rDate.getFullYear() !== now.getFullYear())
-      )
-        return false;
-    }
-    if (query) {
-      const s = (
-        (r.name || "") +
-        " " +
-        (r.goal || "") +
-        " " +
-        (r.meal || "")
-      ).toLowerCase();
->>>>>>> 2f0435d5610d16ba796c26fcf37837e14abaa75e
       if (!s.includes(query)) return false;
     }
     return true;
@@ -982,19 +768,12 @@ function filterRiwayat() {
 
 async function renderRiwayat() {
   riwayatFilter = "all";
-<<<<<<< HEAD
   document.querySelectorAll(".riwayat-filter-btn").forEach((b) => b.classList.remove("active"));
-=======
-  document
-    .querySelectorAll(".riwayat-filter-btn")
-    .forEach((b) => b.classList.remove("active"));
->>>>>>> 2f0435d5610d16ba796c26fcf37837e14abaa75e
   const allBtn = document.getElementById("filter-all");
   if (allBtn) allBtn.classList.add("active");
   const searchEl = document.getElementById("riwayat-search");
   if (searchEl) searchEl.value = "";
 
-<<<<<<< HEAD
   // FIX: Gunakan cache jika data belum berubah, hemat Firestore read
   if (!_riwayatCacheDirty && _riwayatCache.length > 0) {
     renderStats(_riwayatCache);
@@ -1002,16 +781,11 @@ async function renderRiwayat() {
     return;
   }
 
-=======
->>>>>>> 2f0435d5610d16ba796c26fcf37837e14abaa75e
   const list = document.getElementById("riwayat-list");
   list.innerHTML = '<div class="riwayat-empty">Memuat riwayat... ⏳</div>';
 
   _riwayatCache = await fsGetRiwayat(state.currentUser);
-<<<<<<< HEAD
   _riwayatCacheDirty = false;
-=======
->>>>>>> 2f0435d5610d16ba796c26fcf37837e14abaa75e
   renderStats(_riwayatCache);
   renderRiwayatList(_riwayatCache);
 }
@@ -1020,10 +794,7 @@ function renderStats(riwayat) {
   const total = riwayat.length;
   const kaloriEntries = riwayat.filter((r) => r.type === "kalori");
   const avgKalori = kaloriEntries.length
-    ? Math.round(
-        kaloriEntries.reduce((s, r) => s + (r.targetCalories || 0), 0) /
-          kaloriEntries.length,
-      )
+    ? Math.round(kaloriEntries.reduce((s, r) => s + (r.targetCalories || 0), 0) / kaloriEntries.length)
     : 0;
 
   // Goal terfavorit
@@ -1034,25 +805,17 @@ function renderStats(riwayat) {
   });
   const topGoal = Object.entries(goalCount).sort((a, b) => b[1] - a[1])[0];
   const goalEmoji = { diet: "🥗", healthy: "💚", bulking: "💪" };
-  const goalLabel = topGoal
-    ? (goalEmoji[topGoal[0]] || "") +
-      " " +
-      topGoal[0].charAt(0).toUpperCase() +
-      topGoal[0].slice(1)
-    : "-";
+  const goalLabel = topGoal ? (goalEmoji[topGoal[0]] || "") + " " + topGoal[0].charAt(0).toUpperCase() + topGoal[0].slice(1) : "-";
 
   document.getElementById("stat-total").textContent = total;
-  document.getElementById("stat-kalori").textContent = avgKalori
-    ? avgKalori + " kcal"
-    : "-";
+  document.getElementById("stat-kalori").textContent = avgKalori ? avgKalori + " kcal" : "-";
   document.getElementById("stat-goal").textContent = goalLabel;
 }
 
 function renderRiwayatList(riwayat) {
   const list = document.getElementById("riwayat-list");
   if (!riwayat.length) {
-    list.innerHTML =
-      '<div class="riwayat-empty">Tidak ada riwayat yang cocok. 🔍<br>Coba ubah filter atau kata kunci pencarian.</div>';
+    list.innerHTML = '<div class="riwayat-empty">Tidak ada riwayat yang cocok. 🔍<br>Coba ubah filter atau kata kunci pencarian.</div>';
     return;
   }
 
@@ -1064,26 +827,17 @@ function renderRiwayatList(riwayat) {
         const d = new Date(r.rawTime || r.time);
         if (isNaN(d)) return r.time?.split(",")[0] || "Lainnya";
         const today = new Date();
-        const yesterday = new Date();
-        yesterday.setDate(today.getDate() - 1);
+        const yesterday = new Date(); yesterday.setDate(today.getDate() - 1);
         if (d.toDateString() === today.toDateString()) return "Hari Ini";
         if (d.toDateString() === yesterday.toDateString()) return "Kemarin";
-        return d.toLocaleDateString("id-ID", {
-          day: "numeric",
-          month: "long",
-          year: "numeric",
-        });
-      } catch {
-        return "Lainnya";
-      }
+        return d.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+      } catch { return "Lainnya"; }
     })();
     if (!groups[dateKey]) groups[dateKey] = [];
     groups[dateKey].push({ ...r, _idx: idx });
   });
 
-  list.innerHTML = Object.entries(groups)
-    .map(
-      ([date, items]) => `
+  list.innerHTML = Object.entries(groups).map(([date, items]) => `
     <div class="riwayat-date-group">
       <div class="riwayat-date-header">
         <span>${date}</span>
@@ -1092,9 +846,7 @@ function renderRiwayatList(riwayat) {
       </div>
       ${items.map((r) => renderRiwayatItem(r)).join("")}
     </div>
-  `,
-    )
-    .join("");
+  `).join("");
 }
 
 function renderRiwayatItem(r) {
@@ -1123,12 +875,8 @@ function renderRiwayatItem(r) {
 
 async function deleteRiwayatItem(docId) {
   await fsDeleteRiwayat(state.currentUser, docId);
-<<<<<<< HEAD
   _riwayatCache = _riwayatCache.filter(r => r._docId !== docId);
   _riwayatCacheDirty = false; // cache masih valid, sudah di-update lokal
-=======
-  _riwayatCache = _riwayatCache.filter((r) => r._docId !== docId);
->>>>>>> 2f0435d5610d16ba796c26fcf37837e14abaa75e
   renderStats(_riwayatCache);
   filterRiwayat();
   showToast("Riwayat dihapus", "success");
@@ -1138,10 +886,7 @@ async function clearAllRiwayat() {
   if (!confirm("Hapus semua riwayat? Tidak bisa dikembalikan.")) return;
   await fsDeleteAllRiwayat(state.currentUser);
   _riwayatCache = [];
-<<<<<<< HEAD
   _riwayatCacheDirty = false;
-=======
->>>>>>> 2f0435d5610d16ba796c26fcf37837e14abaa75e
   renderStats([]);
   renderRiwayatList([]);
   showToast("Semua riwayat dihapus 🗑️");
@@ -1324,10 +1069,7 @@ function calculateAndShow() {
     siang: "Makan Siang ☀️",
     malam: "Makan Malam 🌙",
   };
-<<<<<<< HEAD
   _riwayatCacheDirty = true; // FIX: invalidate cache saat ada entri kalori baru
-=======
->>>>>>> 2f0435d5610d16ba796c26fcf37837e14abaa75e
   fsAddRiwayat(state.currentUser, {
     type: "kalori",
     goal: goalMap[state.goal],
@@ -1361,33 +1103,11 @@ function buildResultPage(tdee, target, mealCal) {
   const bmi = (state.weight / (state.height / 100) ** 2).toFixed(1);
   const bmiNum = parseFloat(bmi);
   const bmiLabel =
-<<<<<<< HEAD
     bmiNum < 18.5 ? "Kurus" : bmiNum < 25 ? "Normal" : bmiNum < 30 ? "Overweight" : "Obesitas";
   const bmiColor =
     bmiNum < 18.5 ? "#00b4f5" : bmiNum < 25 ? "#00e5a0" : bmiNum < 30 ? "#ffb347" : "#ff6b6b";
   // BMI bar: range 10–40, clamp to 0–100%
   const bmiPct = Math.min(100, Math.max(0, ((bmiNum - 10) / 30) * 100)).toFixed(1);
-=======
-    bmiNum < 18.5
-      ? "Kurus"
-      : bmiNum < 25
-        ? "Normal"
-        : bmiNum < 30
-          ? "Overweight"
-          : "Obesitas";
-  const bmiColor =
-    bmiNum < 18.5
-      ? "#00b4f5"
-      : bmiNum < 25
-        ? "#00e5a0"
-        : bmiNum < 30
-          ? "#ffb347"
-          : "#ff6b6b";
-  // BMI bar: range 10–40, clamp to 0–100%
-  const bmiPct = Math.min(100, Math.max(0, ((bmiNum - 10) / 30) * 100)).toFixed(
-    1,
-  );
->>>>>>> 2f0435d5610d16ba796c26fcf37837e14abaa75e
 
   document.getElementById("calorie-cards").innerHTML = `
     <div class="calorie-card"><div class="calorie-card-icon">⚙️</div><div class="calorie-card-val">${state.bmr}</div><div class="calorie-card-label">BMR (kcal/hari)</div></div>
@@ -1397,7 +1117,6 @@ function buildResultPage(tdee, target, mealCal) {
   `;
 
   // ── BMI Line Chart SVG ──
-<<<<<<< HEAD
   const svgW = 300, svgH = 90, padL = 8, padR = 8, padT = 28, padB = 24;
   const chartW = svgW - padL - padR;
   const bmiMin = 10, bmiMax = 40;
@@ -1491,253 +1210,6 @@ function buildResultPage(tdee, target, mealCal) {
     diet: ["Makan 5–6 kali kecil per hari", "Prioritaskan protein agar massa otot terjaga", "Kurangi karbohidrat simpel (nasi putih, gula)", "Hindari makan berat setelah jam 8 malam"],
     healthy: ["Perbanyak sayur & buah setiap hari", "Konsumsi karbohidrat kompleks (oat, nasi merah)", "Minum air putih minimal 2 liter per hari", "Jaga porsi makan konsisten 3x sehari"],
     bulking: ["Makan setiap 3 jam untuk surplus kalori", "Konsumsi protein dalam 30 menit setelah latihan", "Pilih karbohidrat padat (nasi, pasta, roti gandum)", "Tambahkan healthy fat dari alpukat & kacang-kacangan"],
-=======
-  const svgW = 300,
-    svgH = 90,
-    padL = 8,
-    padR = 8,
-    padT = 28,
-    padB = 24;
-  const chartW = svgW - padL - padR;
-  const bmiMin = 10,
-    bmiMax = 40;
-  const bmiToX = (v) => padL + ((v - bmiMin) / (bmiMax - bmiMin)) * chartW;
-
-  const zones = [
-    { label: "Kurus", val: 14.25, color: "#00b4f5" },
-    { label: "Normal", val: 21.75, color: "#00e5a0" },
-    { label: "Overweight", val: 27.5, color: "#ffb347" },
-    { label: "Obesitas", val: 35, color: "#ff6b6b" },
-  ];
-  const thresholds = [
-    { val: 18.5, color: "#00b4f5" },
-    { val: 25, color: "#00e5a0" },
-    { val: 30, color: "#ffb347" },
-  ];
-  const zoneY = [
-    svgH - padB - 10,
-    svgH - padB - 30,
-    svgH - padB - 20,
-    svgH - padB - 8,
-  ];
-
-  const markerX = bmiToX(Math.min(bmiMax, Math.max(bmiMin, bmiNum)));
-  const pts = zones.map((z, i) => ({ x: bmiToX(z.val), y: zoneY[i] }));
-  let markerY = pts[0].y;
-  for (let i = 0; i < pts.length - 1; i++) {
-    if (markerX >= pts[i].x && markerX <= pts[i + 1].x) {
-      const t = (markerX - pts[i].x) / (pts[i + 1].x - pts[i].x);
-      markerY = pts[i].y + t * (pts[i + 1].y - pts[i].y);
-      break;
-    }
-  }
-  if (markerX < pts[0].x) markerY = pts[0].y;
-  if (markerX > pts[pts.length - 1].x) markerY = pts[pts.length - 1].y;
-
-  // Build SVG strings menggunakan string concatenation (bukan nested template literal)
-  const polyPoints = zones
-    .map((z, i) => bmiToX(z.val) + "," + zoneY[i])
-    .join(" ");
-  const areaPoints =
-    padL +
-    "," +
-    (svgH - padB) +
-    " " +
-    polyPoints +
-    " " +
-    (svgW - padR) +
-    "," +
-    (svgH - padB);
-
-  const gradStops =
-    '<stop offset="0%" stop-color="#00b4f5"/>' +
-    '<stop offset="33%" stop-color="#00e5a0"/>' +
-    '<stop offset="66%" stop-color="#ffb347"/>' +
-    '<stop offset="100%" stop-color="#ff6b6b"/>';
-
-  const zoneDotsHtml = zones
-    .map(
-      (z, i) =>
-        '<circle cx="' +
-        bmiToX(z.val) +
-        '" cy="' +
-        zoneY[i] +
-        '" r="3" fill="' +
-        z.color +
-        '" opacity="0.5"/>',
-    )
-    .join("");
-
-  const zoneLabelsHtml = zones
-    .map(
-      (z, i) =>
-        '<text x="' +
-        bmiToX(z.val) +
-        '" y="' +
-        (svgH - 4) +
-        '" text-anchor="middle" fill="' +
-        z.color +
-        '" font-size="8" font-weight="600" opacity="0.75">' +
-        z.label +
-        "</text>",
-    )
-    .join("");
-
-  const thresholdLinesHtml = thresholds
-    .map(
-      (t) =>
-        '<line x1="' +
-        bmiToX(t.val) +
-        '" y1="' +
-        padT +
-        '" x2="' +
-        bmiToX(t.val) +
-        '" y2="' +
-        (svgH - padB) +
-        '" stroke="' +
-        t.color +
-        '" stroke-width="1" stroke-dasharray="3,3" opacity="0.3"/>',
-    )
-    .join("");
-
-  const bmiSvg =
-    '<svg viewBox="0 0 ' +
-    svgW +
-    " " +
-    svgH +
-    '" width="100%" style="overflow:visible;display:block;margin:0 0 6px">' +
-    "<defs>" +
-    '<linearGradient id="lineGrad" x1="0" x2="1" y1="0" y2="0">' +
-    gradStops +
-    "</linearGradient>" +
-    '<linearGradient id="areaGrad" x1="0" x2="0" y1="0" y2="1">' +
-    '<stop offset="0%" stop-color="' +
-    bmiColor +
-    '" stop-opacity="0.15"/>' +
-    '<stop offset="100%" stop-color="' +
-    bmiColor +
-    '" stop-opacity="0"/>' +
-    "</linearGradient></defs>" +
-    '<polygon points="' +
-    areaPoints +
-    '" fill="url(#areaGrad)" opacity="0.6"/>' +
-    thresholdLinesHtml +
-    '<polyline points="' +
-    polyPoints +
-    '" fill="none" stroke="url(#lineGrad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>' +
-    zoneDotsHtml +
-    '<line x1="' +
-    markerX +
-    '" y1="' +
-    padT +
-    '" x2="' +
-    markerX +
-    '" y2="' +
-    (svgH - padB) +
-    '" stroke="' +
-    bmiColor +
-    '" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.6"/>' +
-    '<circle cx="' +
-    markerX +
-    '" cy="' +
-    markerY +
-    '" r="6" fill="' +
-    bmiColor +
-    '" opacity="0.2"/>' +
-    '<circle cx="' +
-    markerX +
-    '" cy="' +
-    markerY +
-    '" r="4" fill="' +
-    bmiColor +
-    '" stroke="#0a0a0f" stroke-width="1.5"/>' +
-    '<text x="' +
-    markerX +
-    '" y="' +
-    (padT - 6) +
-    '" text-anchor="middle" fill="' +
-    bmiColor +
-    '" font-size="10" font-weight="800">' +
-    bmi +
-    "</text>" +
-    zoneLabelsHtml +
-    "</svg>";
-
-  const goalNote = {
-    diet: "Defisit 400 kcal dari TDEE untuk penurunan berat badan optimal.",
-    healthy: "Kalori seimbang dengan TDEE untuk menjaga berat badan ideal.",
-    bulking: "Surplus 450 kcal dari TDEE untuk mendukung pertumbuhan otot.",
-  }[state.goal];
-
-  document.getElementById("target-banner").innerHTML =
-    '<div class="bmi-visual-wrap">' +
-    '<div class="bmi-visual-header">' +
-    "<span>📏 <strong>Indeks Massa Tubuh (BMI)</strong></span>" +
-    '<span class="bmi-value-badge" style="color:' +
-    bmiColor +
-    ";border-color:" +
-    bmiColor +
-    "20;background:" +
-    bmiColor +
-    '15">' +
-    bmi +
-    " · " +
-    bmiLabel +
-    "</span>" +
-    "</div>" +
-    bmiSvg +
-    "</div>" +
-    '<div class="bmi-goal-note">💡 <strong>Target ' +
-    getGoalLabel(state.goal) +
-    ":</strong> " +
-    goalNote +
-    "</div>";
-
-  // ── Makro Harian ──
-  const macroGoal = {
-    diet: {
-      protein: Math.round(state.weight * 2.0),
-      fat: Math.round((target * 0.25) / 9),
-      carbs: Math.round(
-        (target - state.weight * 2.0 * 4 - Math.round(target * 0.25)) / 4,
-      ),
-    },
-    healthy: {
-      protein: Math.round(state.weight * 1.6),
-      fat: Math.round((target * 0.3) / 9),
-      carbs: Math.round(
-        (target - state.weight * 1.6 * 4 - Math.round(target * 0.3)) / 4,
-      ),
-    },
-    bulking: {
-      protein: Math.round(state.weight * 2.2),
-      fat: Math.round((target * 0.28) / 9),
-      carbs: Math.round(
-        (target - state.weight * 2.2 * 4 - Math.round(target * 0.28)) / 4,
-      ),
-    },
-  }[state.goal];
-
-  const goalTips = {
-    diet: [
-      "Makan 5–6 kali kecil per hari",
-      "Prioritaskan protein agar massa otot terjaga",
-      "Kurangi karbohidrat simpel (nasi putih, gula)",
-      "Hindari makan berat setelah jam 8 malam",
-    ],
-    healthy: [
-      "Perbanyak sayur & buah setiap hari",
-      "Konsumsi karbohidrat kompleks (oat, nasi merah)",
-      "Minum air putih minimal 2 liter per hari",
-      "Jaga porsi makan konsisten 3x sehari",
-    ],
-    bulking: [
-      "Makan setiap 3 jam untuk surplus kalori",
-      "Konsumsi protein dalam 30 menit setelah latihan",
-      "Pilih karbohidrat padat (nasi, pasta, roti gandum)",
-      "Tambahkan healthy fat dari alpukat & kacang-kacangan",
-    ],
->>>>>>> 2f0435d5610d16ba796c26fcf37837e14abaa75e
   }[state.goal];
 
   document.getElementById("reason-box-result").innerHTML = `
@@ -1767,11 +1239,7 @@ function buildResultPage(tdee, target, mealCal) {
     <div class="tips-section">
       <div class="tips-title">💡 Tips ${getGoalLabel(state.goal)}</div>
       <div class="tips-list">
-<<<<<<< HEAD
         ${goalTips.map(t => `<div class="tip-item"><span class="tip-dot"></span><span>${t}</span></div>`).join("")}
-=======
-        ${goalTips.map((t) => `<div class="tip-item"><span class="tip-dot"></span><span>${t}</span></div>`).join("")}
->>>>>>> 2f0435d5610d16ba796c26fcf37837e14abaa75e
       </div>
     </div>
   `;
@@ -1874,7 +1342,6 @@ function openDetail(idx) {
   };
 
   // Kesesuaian kalori dengan target makan
-<<<<<<< HEAD
   const mealPct = state.mealCalories > 0 ? Math.min(100, Math.round((f.calories / state.mealCalories) * 100)) : 0;
   const fitColor = mealPct <= 80 ? "#00e5a0" : mealPct <= 100 ? "#ffb347" : "#ff6b6b";
   const fitLabel = mealPct <= 80 ? "Sesuai target" : mealPct <= 100 ? "Pas di target" : "Melebihi target";
@@ -1884,35 +1351,6 @@ function openDetail(idx) {
     diet:    { icon: "⚖️", tip: "Kurangi porsi nasi/karbo, tambah porsi sayur. Makan perlahan agar cepat kenyang." },
     healthy: { icon: "🍱", tip: "Ikuti porsi rekomendasi. Tambahkan salad atau buah sebagai pelengkap." },
     bulking: { icon: "💪", tip: "Tambah 1–2 porsi jika masih di bawah target kalori harian. Konsumsi dalam 2 jam setelah latihan." },
-=======
-  const mealPct =
-    state.mealCalories > 0
-      ? Math.min(100, Math.round((f.calories / state.mealCalories) * 100))
-      : 0;
-  const fitColor =
-    mealPct <= 80 ? "#00e5a0" : mealPct <= 100 ? "#ffb347" : "#ff6b6b";
-  const fitLabel =
-    mealPct <= 80
-      ? "Sesuai target"
-      : mealPct <= 100
-        ? "Pas di target"
-        : "Melebihi target";
-
-  // Saran porsi per goal
-  const portionTips = {
-    diet: {
-      icon: "⚖️",
-      tip: "Kurangi porsi nasi/karbo, tambah porsi sayur. Makan perlahan agar cepat kenyang.",
-    },
-    healthy: {
-      icon: "🍱",
-      tip: "Ikuti porsi rekomendasi. Tambahkan salad atau buah sebagai pelengkap.",
-    },
-    bulking: {
-      icon: "💪",
-      tip: "Tambah 1–2 porsi jika masih di bawah target kalori harian. Konsumsi dalam 2 jam setelah latihan.",
-    },
->>>>>>> 2f0435d5610d16ba796c26fcf37837e14abaa75e
   }[state.goal];
 
   document.getElementById("detail-reason").innerHTML = `
@@ -1930,19 +1368,10 @@ function openDetail(idx) {
       <strong>Mengapa ini?</strong> ${reasons[state.goal]}
     </div>
     <div class="detail-labels-wrap">
-<<<<<<< HEAD
       ${(f.labels || []).map((l, i) => {
         const colors = ["#00e5a0", "#00b4f5", "#ff6b6b"];
         return `<span class="detail-label-tag" style="color:${colors[i % 3]};border-color:${colors[i % 3]}30;background:${colors[i % 3]}10">${l}</span>`;
       }).join("")}
-=======
-      ${(f.labels || [])
-        .map((l, i) => {
-          const colors = ["#00e5a0", "#00b4f5", "#ff6b6b"];
-          return `<span class="detail-label-tag" style="color:${colors[i % 3]};border-color:${colors[i % 3]}30;background:${colors[i % 3]}10">${l}</span>`;
-        })
-        .join("")}
->>>>>>> 2f0435d5610d16ba796c26fcf37837e14abaa75e
     </div>
     <div class="detail-portion-tip">
       <span class="portion-tip-icon">${portionTips.icon}</span>
@@ -1965,7 +1394,6 @@ function openDetail(idx) {
   // Reset AR state saat buka detail baru
   stopCamera();
   arActive = false;
-<<<<<<< HEAD
   const arVideo = document.getElementById("ar-video");
   if (arVideo) arVideo.style.display = "none";
   const arOverlay = document.getElementById("ar-overlay");
@@ -1978,15 +1406,6 @@ function openDetail(idx) {
     model3d.src = "";
   }
   document.getElementById("ar-hint").textContent = "🤚 Drag untuk putar • Scroll untuk zoom";
-=======
-  document.getElementById("ar-video").style.display = "none";
-  document.getElementById("ar-overlay").style.display = "flex";
-  document.getElementById("model-3d").style.display = "none";
-  document.getElementById("model-3d").removeAttribute("src");
-  document.getElementById("model-3d").src = "";
-  document.getElementById("ar-hint").textContent =
-    "🤚 Drag untuk putar • Scroll untuk zoom";
->>>>>>> 2f0435d5610d16ba796c26fcf37837e14abaa75e
   // Destroy model-viewer container
   const container = document.getElementById("model-3d-container");
   if (container) {
@@ -2000,7 +1419,6 @@ function openDetail(idx) {
     btnToggle.style.background = "";
   }
 
-<<<<<<< HEAD
   // FIX: Cek duplikat — jangan simpan riwayat yang sama di hari yang sama
   const todayStr = new Date().toISOString().slice(0, 10);
   const sudahAda = _riwayatCache.some(r =>
@@ -2018,18 +1436,6 @@ function openDetail(idx) {
       rawTime: new Date().toISOString(),
     });
   }
-=======
-  // Save to riwayat
-  fsAddRiwayat(state.currentUser, {
-    type: "food",
-    name: f.name,
-    calories: f.calories,
-    protein: f.protein,
-    img: f.img,
-    time: fmtTime(),
-    rawTime: new Date().toISOString(),
-  });
->>>>>>> 2f0435d5610d16ba796c26fcf37837e14abaa75e
 }
 
 // ─── CAMERA / AR ──────────────────────────────────────────────
@@ -2082,8 +1488,7 @@ async function toggleAR() {
         mv.setAttribute("auto-rotate", "");
         mv.setAttribute("camera-controls", "");
         mv.setAttribute("shadow-intensity", "1");
-        mv.style.cssText =
-          "width:100%;height:100%;background:transparent;position:absolute;top:0;left:0;z-index:10;";
+        mv.style.cssText = "width:100%;height:100%;background:transparent;position:absolute;top:0;left:0;z-index:10;";
         container.appendChild(mv);
 
         // Buat label DILUAR model-viewer tapi di dalam container
@@ -2091,27 +1496,9 @@ async function toggleAR() {
         const f = state.currentFood;
         if (f) {
           const labelStyles = [
-            {
-              top: "20%",
-              right: "10%",
-              delay: "0.3s",
-              bg: "rgba(0,229,160,0.9)",
-              shadow: "rgba(0,229,160,0.5)",
-            },
-            {
-              top: "60%",
-              left: "8%",
-              delay: "0.8s",
-              bg: "rgba(0,180,245,0.9)",
-              shadow: "rgba(0,180,245,0.5)",
-            },
-            {
-              bottom: "15%",
-              right: "12%",
-              delay: "1.3s",
-              bg: "rgba(255,107,107,0.9)",
-              shadow: "rgba(255,107,107,0.5)",
-            },
+            { top: "20%",  right: "10%", delay: "0.3s",  bg: "rgba(0,229,160,0.9)",  shadow: "rgba(0,229,160,0.5)"  },
+            { top: "60%",  left:  "8%",  delay: "0.8s",  bg: "rgba(0,180,245,0.9)",  shadow: "rgba(0,180,245,0.5)"  },
+            { bottom:"15%",right: "12%", delay: "1.3s",  bg: "rgba(255,107,107,0.9)",shadow: "rgba(255,107,107,0.5)"},
           ];
           f.labels.forEach((label, i) => {
             if (!label) return;
@@ -2120,10 +1507,10 @@ async function toggleAR() {
             el.textContent = label;
             const s = labelStyles[i];
             el.style.cssText = [
-              s.top ? `top:${s.top};` : "",
+              s.top    ? `top:${s.top};`    : "",
               s.bottom ? `bottom:${s.bottom};` : "",
-              s.left ? `left:${s.left};` : "",
-              s.right ? `right:${s.right};` : "",
+              s.left   ? `left:${s.left};`  : "",
+              s.right  ? `right:${s.right};`: "",
               `background:${s.bg};`,
               `box-shadow:0 2px 12px ${s.shadow};`,
               `animation-delay:${s.delay};`,
@@ -2252,11 +1639,8 @@ function nowTime() {
   });
 }
 
-<<<<<<< HEAD
 
 
-=======
->>>>>>> 2f0435d5610d16ba796c26fcf37837e14abaa75e
 async function renderChatFromStorage() {
   const uid = state.currentUser;
   if (!uid) return;
@@ -2336,16 +1720,7 @@ async function sendChat() {
 
   const userTime = nowTime();
   appendMsgEl(text, "user", userTime);
-<<<<<<< HEAD
   const userEntry = { role: "user", text, time: userTime, rawTime: new Date().toISOString() };
-=======
-  const userEntry = {
-    role: "user",
-    text,
-    time: userTime,
-    rawTime: new Date().toISOString(),
-  };
->>>>>>> 2f0435d5610d16ba796c26fcf37837e14abaa75e
   chatMessages.push(userEntry);
   fsSaveChat(state.currentUser, userEntry);
 
@@ -2390,42 +1765,19 @@ Persona: antusias, supportif, dan berpengetahuan luas soal gizi.`;
     removeTypingIndicator();
     const botTime = nowTime();
     appendMsgEl(reply, "bot", botTime);
-<<<<<<< HEAD
     const botEntry = { role: "bot", text: reply, time: botTime, rawTime: new Date().toISOString() };
-=======
-    const botEntry = {
-      role: "bot",
-      text: reply,
-      time: botTime,
-      rawTime: new Date().toISOString(),
-    };
->>>>>>> 2f0435d5610d16ba796c26fcf37837e14abaa75e
     chatMessages.push(botEntry);
     fsSaveChat(state.currentUser, botEntry);
   } catch (e) {
     removeTypingIndicator();
     const errTime = nowTime();
-    let errMsg =
-      "Maaf, koneksi AI bermasalah saat ini. Pastikan server backend sudah berjalan dan coba lagi! 🔄";
+    let errMsg = "Maaf, koneksi AI bermasalah saat ini. Pastikan server backend sudah berjalan dan coba lagi! 🔄";
     // Tampilkan pesan lebih spesifik jika server tidak bisa dihubungi
-    if (
-      e.message.includes("Failed to fetch") ||
-      e.message.includes("NetworkError")
-    ) {
-      errMsg =
-        "Tidak bisa terhubung ke server. Pastikan `node server.js` sudah berjalan di terminal! 🖥️";
+    if (e.message.includes("Failed to fetch") || e.message.includes("NetworkError")) {
+      errMsg = "Tidak bisa terhubung ke server. Pastikan `node server.js` sudah berjalan di terminal! 🖥️";
     }
     appendMsgEl(errMsg, "bot", errTime);
-<<<<<<< HEAD
     const errEntry = { role: "bot", text: errMsg, time: errTime, rawTime: new Date().toISOString(), _isError: true };
-=======
-    const errEntry = {
-      role: "bot",
-      text: errMsg,
-      time: errTime,
-      rawTime: new Date().toISOString(),
-    };
->>>>>>> 2f0435d5610d16ba796c26fcf37837e14abaa75e
     chatMessages.push(errEntry);
     fsSaveChat(state.currentUser, errEntry);
   }
@@ -2443,13 +1795,9 @@ function sendChip(btn) {
 async function initChatForUser(uid) {
   chatMessages = await fsGetChat(uid);
   chatInitialized = false;
-<<<<<<< HEAD
   // FIX: Tidak langsung render di sini — biarkan switchTab("chat") yang trigger
   // renderChatFromStorage() saat user membuka tab Chat.
   // Ini mencegah race condition & double render.
-=======
-  renderChatFromStorage();
->>>>>>> 2f0435d5610d16ba796c26fcf37837e14abaa75e
 }
 
 async function clearChat() {
@@ -2498,17 +1846,12 @@ window.sendChat = sendChat;
 window.sendChip = sendChip;
 window.clearChat = clearChat;
 
-<<<<<<< HEAD
 // FIX: Debounced version untuk input pencarian riwayat — cegah rerender tiap keystroke
 const filterRiwayatDebounced = debounce(filterRiwayat, 250);
 window.filterRiwayatDebounced = filterRiwayatDebounced;
 
 // Beritahu HTML bahwa module sudah siap
 document.dispatchEvent(new Event('moduleready'));
-=======
-// Beritahu HTML bahwa module sudah siap
-document.dispatchEvent(new Event("moduleready"));
->>>>>>> 2f0435d5610d16ba796c26fcf37837e14abaa75e
 
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("auth-wrapper").style.display = "block";
@@ -2525,8 +1868,4 @@ document.addEventListener("DOMContentLoaded", () => {
       showAuth("login-screen");
     }
   });
-<<<<<<< HEAD
 });
-=======
-});
->>>>>>> 2f0435d5610d16ba796c26fcf37837e14abaa75e
