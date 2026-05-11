@@ -873,52 +873,64 @@ h2 {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 10px;
-  margin-bottom: 18px;
+  margin-bottom: 22px;
 }
 
 .calorie-card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--card-radius);
-  padding: 16px 14px;
+  border-radius: 18px;
+  padding: 18px 16px;
   min-width: 0;
+  position: relative;
+  overflow: hidden;
+  transition: var(--transition);
+}
+
+.calorie-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, transparent 60%, rgba(255,255,255,0.02));
+  pointer-events: none;
 }
 
 .calorie-card.highlight {
-  border-color: var(--accent);
-  background: rgba(0, 229, 160, 0.06);
-  box-shadow: 0 0 24px var(--glow);
+  border-color: rgba(0, 229, 160, 0.3);
+  background: linear-gradient(135deg, rgba(0,229,160,0.08), rgba(0,180,245,0.04));
+  box-shadow: 0 4px 24px rgba(0,229,160,0.12), inset 0 1px 0 rgba(255,255,255,0.05);
 }
 
 .calorie-card-icon {
-  font-size: 20px;
-  margin-bottom: 7px;
+  font-size: 18px;
+  margin-bottom: 10px;
+  display: block;
+  opacity: 0.85;
 }
 
 .calorie-card-val {
   font-family: "Syne", sans-serif;
-  font-size: clamp(18px, 4vw, 22px);
+  font-size: clamp(22px, 5vw, 28px);
   font-weight: 800;
   line-height: 1;
+  letter-spacing: -0.5px;
 }
 
 .calorie-card-label {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--text-muted);
-  margin-top: 4px;
+  margin-top: 6px;
   font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .target-banner {
-  background: linear-gradient(
-    135deg,
-    rgba(0, 229, 160, 0.12),
-    rgba(0, 180, 245, 0.08)
-  );
-  border: 1px solid rgba(0, 229, 160, 0.2);
-  border-radius: 16px;
-  padding: 14px 16px;
-  margin-bottom: 18px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  margin-bottom: 20px;
   font-size: 14px;
   line-height: 1.6;
 }
@@ -928,21 +940,23 @@ h2 {
   align-items: center;
   justify-content: space-between;
   font-family: "Syne", sans-serif;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
   margin-bottom: 14px;
   gap: 8px;
+  letter-spacing: -0.2px;
 }
 
 .badge {
-  background: rgba(0, 229, 160, 0.12);
-  border: 1px solid rgba(0, 229, 160, 0.2);
+  background: rgba(0, 229, 160, 0.08);
+  border: 1px solid rgba(0, 229, 160, 0.15);
   border-radius: 50px;
-  padding: 4px 12px;
-  font-size: 11px;
+  padding: 3px 10px;
+  font-size: 10px;
   color: var(--accent);
-  font-weight: 700;
+  font-weight: 600;
   flex-shrink: 0;
+  letter-spacing: 0.3px;
 }
 
 .food-grid {
@@ -955,82 +969,96 @@ h2 {
 .food-card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--card-radius);
+  border-radius: 18px;
   overflow: hidden;
   cursor: pointer;
   transition: var(--transition);
   min-width: 0;
+  position: relative;
 }
 
 .food-card:hover {
-  border-color: rgba(0, 229, 160, 0.3);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  border-color: rgba(0, 229, 160, 0.25);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+}
+
+.food-card:active {
+  transform: translateY(-1px);
 }
 
 .food-img {
   width: 100%;
   aspect-ratio: 4/3;
   object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.food-card:hover .food-img {
+  transform: scale(1.04);
 }
 
 .food-body {
-  padding: 10px;
+  padding: 12px 10px;
 }
 
 .food-name {
   font-family: "Syne", sans-serif;
   font-size: 12px;
   font-weight: 700;
-  margin-bottom: 3px;
+  margin-bottom: 4px;
   line-height: 1.3;
+  letter-spacing: -0.1px;
 }
 
 .food-cal {
   font-size: 11px;
   color: var(--accent);
   font-weight: 600;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
+  opacity: 0.9;
 }
 
 .food-macros {
   display: flex;
-  gap: 4px;
+  gap: 3px;
   flex-wrap: wrap;
 }
 
 .macro-tag {
   font-size: 9px;
   padding: 2px 6px;
-  border-radius: 6px;
-  background: var(--surface);
+  border-radius: 20px;
+  background: transparent;
   border: 1px solid var(--border);
   color: var(--text-muted);
+  font-weight: 500;
 }
 
 .macro-tag.protein {
-  border-color: rgba(0, 180, 245, 0.3);
+  border-color: rgba(0, 180, 245, 0.25);
   color: var(--accent2);
 }
 
 .macro-tag.fat {
-  border-color: rgba(255, 107, 107, 0.3);
+  border-color: rgba(255, 107, 107, 0.25);
   color: var(--accent3);
 }
 
 .reason-box {
-  background: rgba(0, 229, 160, 0.06);
-  border: 1px solid rgba(0, 229, 160, 0.15);
-  border-radius: 14px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 16px;
   padding: 14px 16px;
   margin-bottom: 18px;
   font-size: 13px;
   color: var(--text-muted);
-  line-height: 1.6;
+  line-height: 1.7;
 }
 
 .reason-box strong {
   color: var(--accent);
+  font-weight: 600;
 }
 
 /* ══════════════════════════════════════════════════
@@ -1213,30 +1241,48 @@ h2 {
 }
 
 .macro-card {
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 12px 8px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 16px;
+  padding: 14px 8px;
   text-align: center;
   min-width: 0;
+  transition: var(--transition);
+}
+
+.macro-card:hover {
+  border-color: rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.05);
 }
 
 .macro-card-icon {
-  font-size: 18px;
-  margin-bottom: 4px;
+  font-size: 20px;
+  margin-bottom: 6px;
+  display: block;
 }
 
 .macro-card-val {
   font-family: "Syne", sans-serif;
-  font-size: clamp(13px, 3vw, 16px);
+  font-size: clamp(15px, 3.5vw, 18px);
   font-weight: 800;
   line-height: 1;
+  letter-spacing: -0.3px;
+}
+
+.macro-card-kcal {
+  font-size: 9px;
+  color: var(--text-muted);
+  margin-top: 2px;
+  opacity: 0.7;
 }
 
 .macro-card-label {
   font-size: 10px;
   color: var(--text-muted);
-  margin-top: 3px;
+  margin-top: 4px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
 }
 
 .detail-desc {
@@ -1267,17 +1313,17 @@ h2 {
 
 .progress-macro-bar {
   flex: 1;
-  height: 6px;
-  background: var(--surface2);
-  border-radius: 4px;
+  height: 5px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 10px;
   overflow: hidden;
   min-width: 0;
 }
 
 .progress-macro-fill {
   height: 100%;
-  border-radius: 4px;
-  transition: width 1s ease;
+  border-radius: 10px;
+  transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .fill-protein {
@@ -2504,4 +2550,350 @@ h2 {
   animation-delay: 1.3s;
   background: rgba(255, 107, 107, 0.9);
   box-shadow: 0 2px 12px rgba(255, 107, 107, 0.5);
+}
+/* ═══════════════════════════════════════════════════════════════
+   RESULT PAGE — BMI VISUAL
+═══════════════════════════════════════════════════════════════ */
+
+.bmi-visual-wrap {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 20px;
+  padding: 18px;
+  margin-bottom: 12px;
+}
+
+.bmi-visual-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  font-size: 13px;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.7);
+  letter-spacing: 0.2px;
+}
+
+.bmi-value-badge {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid;
+  letter-spacing: 0.3px;
+}
+
+.bmi-bar-track {
+  position: relative;
+  display: flex;
+  height: 32px;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 12px;
+  gap: 2px;
+}
+
+.bmi-zone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-right: none;
+  font-size: 10px;
+  color: rgba(255,255,255,0.6);
+  font-weight: 600;
+  transition: all 0.3s;
+  border-radius: 6px;
+  letter-spacing: 0.2px;
+}
+.bmi-zone:last-child { border-right: none; }
+.bmi-zone span { pointer-events: none; }
+
+.bmi-indicator {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2.5px solid;
+  z-index: 10;
+  transition: left 0.8s cubic-bezier(.34,1.56,.64,1);
+  box-shadow: 0 0 12px currentColor;
+}
+
+.bmi-indicator-label {
+  position: absolute;
+  top: -24px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+  letter-spacing: -0.2px;
+}
+
+.bmi-zones-legend {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 10px;
+  font-weight: 500;
+  opacity: 0.7;
+}
+
+.bmi-goal-note {
+  font-size: 13px;
+  color: rgba(255,255,255,0.65);
+  background: rgba(255,255,255,0.03);
+  border-radius: 12px;
+  padding: 12px 14px;
+  line-height: 1.6;
+  margin-top: 6px;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RESULT PAGE — MACRO DAILY SECTION
+═══════════════════════════════════════════════════════════════ */
+
+.macro-daily-section {
+  margin-bottom: 20px;
+}
+
+.macro-daily-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.9);
+  margin-bottom: 12px;
+}
+
+.macro-daily-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.macro-daily-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 18px;
+  padding: 16px 10px;
+  text-align: center;
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+.macro-daily-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.05);
+}
+
+.macro-daily-card.protein-card { border-top: 2px solid rgba(0,229,160,0.6); }
+.macro-daily-card.fat-card     { border-top: 2px solid rgba(255,179,71,0.6); }
+.macro-daily-card.carbs-card   { border-top: 2px solid rgba(0,180,245,0.6); }
+
+.macro-daily-icon {
+  font-size: 22px;
+  margin-bottom: 6px;
+}
+
+.macro-daily-val {
+  font-size: 20px;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1;
+  margin-bottom: 2px;
+}
+
+.macro-daily-kcal {
+  font-size: 11px;
+  color: rgba(255,255,255,0.45);
+  margin-bottom: 4px;
+}
+
+.macro-daily-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.6);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RESULT PAGE — TIPS SECTION
+═══════════════════════════════════════════════════════════════ */
+
+.tips-section {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 20px;
+  padding: 18px;
+  margin-bottom: 4px;
+}
+
+.tips-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.8);
+  margin-bottom: 14px;
+  letter-spacing: 0.2px;
+  text-transform: uppercase;
+  font-size: 11px;
+  opacity: 0.7;
+}
+
+.tips-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tip-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13px;
+  color: rgba(255,255,255,0.65);
+  line-height: 1.5;
+}
+
+.tip-dot {
+  flex-shrink: 0;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent, #00e5a0);
+  margin-top: 6px;
+  opacity: 0.7;
+}
+/* ═══════════════════════════════════════════════════════════════
+   DETAIL PAGE — PREMIUM REDESIGN
+═══════════════════════════════════════════════════════════════ */
+
+.detail-name {
+  font-family: "Syne", sans-serif;
+  font-size: clamp(20px, 4.5vw, 26px) !important;
+  font-weight: 800;
+  margin-bottom: 4px;
+  line-height: 1.2;
+  letter-spacing: -0.5px;
+}
+
+.detail-cal-big {
+  font-size: 13px !important;
+  color: var(--accent) !important;
+  font-weight: 600 !important;
+  margin-bottom: 18px !important;
+  opacity: 0.85;
+  letter-spacing: 0.2px;
+}
+
+/* Kesesuaian target */
+.detail-fit-wrap {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 18px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.detail-fit-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: rgba(255,255,255,0.6);
+  margin-bottom: 10px;
+  font-weight: 500;
+  gap: 8px;
+}
+
+.detail-fit-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+  border: 1px solid;
+  letter-spacing: 0.3px;
+  flex-shrink: 0;
+}
+
+.detail-fit-bar-track {
+  height: 4px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.detail-fit-bar-fill {
+  height: 100%;
+  border-radius: 10px;
+  transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.detail-fit-note {
+  font-size: 11px;
+  color: rgba(255,255,255,0.4);
+  font-weight: 500;
+}
+
+/* Mengapa ini */
+.detail-reason-box {
+  font-size: 13px;
+  color: rgba(255,255,255,0.55);
+  line-height: 1.6;
+  margin-bottom: 14px;
+  padding: 0 2px;
+}
+
+.detail-reason-box strong {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* Label tags */
+.detail-labels-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.detail-label-tag {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid;
+  letter-spacing: 0.3px;
+}
+
+/* Portion tip */
+.detail-portion-tip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: rgba(255,255,255,0.45);
+  background: rgba(255,255,255,0.02);
+  border-radius: 12px;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  border: 1px solid rgba(255,255,255,0.04);
+  line-height: 1.4;
+}
+
+.portion-tip-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+.detail-desc {
+  font-size: 13px !important;
+  color: rgba(255,255,255,0.45) !important;
+  line-height: 1.7 !important;
+  margin-bottom: 20px !important;
 }

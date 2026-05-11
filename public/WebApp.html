@@ -732,7 +732,7 @@
               id="riwayat-search"
               type="text"
               placeholder="Cari nama makanan atau goal..."
-              oninput="filterRiwayat()"
+              oninput="filterRiwayatDebounced()"
             />
             <button class="riwayat-clear-btn" id="riwayat-clear-btn" onclick="clearAllRiwayat()" title="Hapus semua riwayat">🗑️</button>
           </div>
@@ -801,6 +801,45 @@
       </nav>
     </div>
 
-    <script src="js/Main.js"></script>
+    <script>
+      // Proxy global — fungsi-fungsi ini akan tersedia setelah module load
+      // Semua onclick/onkeydown di HTML memanggil proxy ini
+      const fnProxy = (name, ...args) => {
+        if (window[name]) return window[name](...args);
+        document.addEventListener('moduleready', () => window[name]?.(...args), { once: true });
+      };
+      const doLogin = (...a) => fnProxy('doLogin', ...a);
+      const doRegister = (...a) => fnProxy('doRegister', ...a);
+      const doLogout = (...a) => fnProxy('doLogout', ...a);
+      const confirmLogout = (...a) => fnProxy('confirmLogout', ...a);
+      const showAuth = (...a) => fnProxy('showAuth', ...a);
+      const togglePw = (...a) => fnProxy('togglePw', ...a);
+      const switchTab = (...a) => fnProxy('switchTab', ...a);
+      const selectGoal = (...a) => fnProxy('selectGoal', ...a);
+      const selectMeal = (...a) => fnProxy('selectMeal', ...a);
+      const calculateCalories = (...a) => fnProxy('calculateCalories', ...a);
+      const goBackToGoal = (...a) => fnProxy('goBackToGoal', ...a);
+      const openDetail = (...a) => fnProxy('openDetail', ...a);
+      const goBack = (...a) => fnProxy('goBack', ...a);
+      const toggleAR = (...a) => fnProxy('toggleAR', ...a);
+      const startCamera = (...a) => fnProxy('startCamera', ...a);
+      const stopCamera = (...a) => fnProxy('stopCamera', ...a);
+      const rotateModel = (...a) => fnProxy('rotateModel', ...a);
+      const scaleModel = (...a) => fnProxy('scaleModel', ...a);
+      const showProfileSub = (...a) => fnProxy('showProfileSub', ...a);
+      const hideProfileSub = (...a) => fnProxy('hideProfileSub', ...a);
+      const pickEmoji = (...a) => fnProxy('pickEmoji', ...a);
+      const saveProfile = (...a) => fnProxy('saveProfile', ...a);
+      const renderRiwayat = (...a) => fnProxy('renderRiwayat', ...a);
+      const setRiwayatFilter = (...a) => fnProxy('setRiwayatFilter', ...a);
+      const filterRiwayat = (...a) => fnProxy('filterRiwayat', ...a);
+      const filterRiwayatDebounced = (...a) => fnProxy('filterRiwayatDebounced', ...a);
+      const deleteRiwayatItem = (...a) => fnProxy('deleteRiwayatItem', ...a);
+      const clearAllRiwayat = (...a) => fnProxy('clearAllRiwayat', ...a);
+      const sendChat = (...a) => fnProxy('sendChat', ...a);
+      const sendChip = (...a) => fnProxy('sendChip', ...a);
+      const clearChat = (...a) => fnProxy('clearChat', ...a);
+    </script>
+    <script type="module" src="js/Main.js"></script>
   </body>
 </html>
