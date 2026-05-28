@@ -21,7 +21,6 @@ import {
   doc,
   setDoc,
   getDoc,
-  updateDoc,
   collection,
   addDoc,
   getDocs,
@@ -30,7 +29,6 @@ import {
   where,
   orderBy,
   limit,
-  serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -48,9 +46,9 @@ const db = getFirestore(firebaseApp);
 
 // ─── FOOD DATA ────────────────────────────────────────────────
 const foodData = [
-  // ═══════════════════════════════════════════
+  // ═══════════════════════════════════════
   // DIET — SARAPAN
-  // ═══════════════════════════════════════════
+  // ═══════════════════════════════════════
   {
     name: "Bubur Ayam",
     calories: 320,
@@ -100,9 +98,9 @@ const foodData = [
     labels: ["Low Calorie", "High Vitamin", "Energy Boost"],
   },
 
-  // ═══════════════════════════════════════════
+  // ═══════════════════════════════════════
   // DIET — SIANG
-  // ═══════════════════════════════════════════
+  // ═══════════════════════════════════════
   {
     name: "Gado Gado",
     calories: 400,
@@ -152,9 +150,9 @@ const foodData = [
     labels: ["Omega-3", "High Protein", "Low Fat"],
   },
 
-  // ═══════════════════════════════════════════
+  // ═══════════════════════════════════════
   // DIET — MALAM
-  // ═══════════════════════════════════════════
+  // ═══════════════════════════════════════
   {
     name: "Pecel Lele",
     calories: 320,
@@ -180,9 +178,9 @@ const foodData = [
     labels: ["Low Calorie", "Anti Inflam", "Light Meal"],
   },
 
-  // ═══════════════════════════════════════════
+  // ═══════════════════════════════════════
   // HEALTHY — SARAPAN
-  // ═══════════════════════════════════════════
+  // ═══════════════════════════════════════
   {
     name: "Overnight Oats Chia",
     calories: 340,
@@ -220,9 +218,9 @@ const foodData = [
     labels: ["High Protein", "Low Carb", "Balanced"],
   },
 
-  // ═══════════════════════════════════════════
+  // ═══════════════════════════════════════
   // HEALTHY — SIANG
-  // ═══════════════════════════════════════════
+  // ═══════════════════════════════════════
   {
     name: "Ayam Penyet",
     calories: 520,
@@ -260,9 +258,9 @@ const foodData = [
     labels: ["Whole Grain", "Balanced", "Mediterranean"],
   },
 
-  // ═══════════════════════════════════════════
+  // ═══════════════════════════════════════
   // HEALTHY — MALAM
-  // ═══════════════════════════════════════════
+  // ═══════════════════════════════════════
   {
     name: "Grilled Chicken & Veggies",
     calories: 400,
@@ -288,9 +286,9 @@ const foodData = [
     labels: ["Plant Based", "Low Fat", "Vegetarian"],
   },
 
-  // ═══════════════════════════════════════════
+  // ═══════════════════════════════════════
   // BULKING — SARAPAN
-  // ═══════════════════════════════════════════
+  // ═══════════════════════════════════════
   {
     name: "Power Smoothie Protein",
     calories: 650,
@@ -328,9 +326,9 @@ const foodData = [
     labels: ["High Carb", "Energy Dense", "Mass Build"],
   },
 
-  // ═══════════════════════════════════════════
+  // ═══════════════════════════════════════
   // BULKING — SIANG
-  // ═══════════════════════════════════════════
+  // ═══════════════════════════════════════
   {
     name: "Nasi Putih Ayam Goreng",
     calories: 750,
@@ -368,9 +366,9 @@ const foodData = [
     labels: ["High Calorie", "Protein Rich", "Classic"],
   },
 
-  // ═══════════════════════════════════════════
+  // ═══════════════════════════════════════
   // BULKING — MALAM
-  // ═══════════════════════════════════════════
+  // ═══════════════════════════════════════
   {
     name: "Nasi Goreng Telur Ayam",
     calories: 620,
@@ -398,7 +396,6 @@ const foodData = [
 ];
 
 // ─── MODEL 3D MAPPING ────────────────────────────────────────
-// Tambahkan mapping nama makanan → file GLB di sini
 const foodModels = {
   "Gado Gado": "assets/models/gado-gado.glb",
   "Bubur Ayam": "assets/models/Bubur_Ayam.glb",
@@ -427,10 +424,19 @@ const state = {
   targetCalories: 0,
   mealCalories: 0,
   currentFood: null,
-  history: ["home-section"],
   cameraStream: null,
-  currentUser: null,      // Firebase UID
-  currentUsername: null,  // display name
+  currentUser: null,
+  currentUsername: null,
+};
+
+// State khusus Analisis
+const analisisState = {
+  weight: null,
+  height: null,
+  age: null,
+  gender: null,
+  activity: null,
+  goal: null,
 };
 
 // ─── GLOBAL VARIABLES ─────────────────────────
@@ -451,22 +457,20 @@ let currentFilteredFoods = [];
 // ─── UTILITIES ────────────────────────────────────────────────
 function debounce(fn, delay) {
   let timer;
-  return (...args) => { clearTimeout(timer); timer = setTimeout(() => fn(...args), delay); };
+  return (...args) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn(...args), delay);
+  };
 }
-
-// ─── LOCAL STORAGE HELPERS (tetap untuk state sementara) ──────
-const LS = {
-  get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
-  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
-  remove(k) { localStorage.removeItem(k); },
-};
 
 // ─── FIRESTORE HELPERS ────────────────────────────────────────
 async function fsGetUser(uid) {
   try {
     const snap = await getDoc(doc(db, "users", uid));
     return snap.exists() ? snap.data() : null;
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
 async function fsSetUser(uid, data) {
@@ -475,10 +479,16 @@ async function fsSetUser(uid, data) {
 
 async function fsGetRiwayat(uid) {
   try {
-    const q = query(collection(db, "riwayat", uid, "entries"), orderBy("rawTime", "desc"), limit(50));
+    const q = query(
+      collection(db, "riwayat", uid, "entries"),
+      orderBy("rawTime", "desc"),
+      limit(50),
+    );
     const snap = await getDocs(q);
-    return snap.docs.map(d => ({ ...d.data(), _docId: d.id }));
-  } catch { return []; }
+    return snap.docs.map((d) => ({ ...d.data(), _docId: d.id }));
+  } catch {
+    return [];
+  }
 }
 
 async function fsAddRiwayat(uid, entry) {
@@ -491,16 +501,60 @@ async function fsDeleteRiwayat(uid, docId) {
 
 async function fsDeleteAllRiwayat(uid) {
   const snap = await getDocs(collection(db, "riwayat", uid, "entries"));
-  const dels = snap.docs.map(d => deleteDoc(d.ref));
+  const dels = snap.docs.map((d) => deleteDoc(d.ref));
   await Promise.all(dels);
 }
 
+// ─── FOOD LOG (Progress) ───────────────────────────────────────
+async function fsAddFoodLog(uid, entry) {
+  await addDoc(collection(db, "foodlog", uid, "entries"), entry);
+}
+
+async function fsGetFoodLog(uid) {
+  try {
+    const q = query(
+      collection(db, "foodlog", uid, "entries"),
+      orderBy("rawTime", "desc"),
+      limit(100),
+    );
+    const snap = await getDocs(q);
+    return snap.docs.map((d) => ({ ...d.data(), _docId: d.id }));
+  } catch {
+    return [];
+  }
+}
+
+async function fsDeleteAllFoodLog(uid) {
+  const snap = await getDocs(collection(db, "foodlog", uid, "entries"));
+  const dels = snap.docs.map((d) => deleteDoc(d.ref));
+  await Promise.all(dels);
+}
+
+async function clearProgressData() {
+  if (
+    !confirm(
+      "Hapus semua data progress? Riwayat makanan yang dikonfirmasi akan hilang permanen.",
+    )
+  )
+    return;
+  await fsDeleteAllFoodLog(state.currentUser);
+  showToast("Semua data progress dihapus 🗑️", "success");
+  renderProgressInProfile();
+}
+window.clearProgressData = clearProgressData;
+
 async function fsGetChat(uid) {
   try {
-    const q = query(collection(db, "chats", uid, "messages"), orderBy("rawTime", "asc"), limit(60));
+    const q = query(
+      collection(db, "chats", uid, "messages"),
+      orderBy("rawTime", "asc"),
+      limit(60),
+    );
     const snap = await getDocs(q);
-    return snap.docs.map(d => ({ ...d.data(), _docId: d.id }));
-  } catch { return []; }
+    return snap.docs.map((d) => ({ ...d.data(), _docId: d.id }));
+  } catch {
+    return [];
+  }
 }
 
 async function fsSaveChat(uid, msg) {
@@ -509,7 +563,7 @@ async function fsSaveChat(uid, msg) {
 
 async function fsClearChat(uid) {
   const snap = await getDocs(collection(db, "chats", uid, "messages"));
-  await Promise.all(snap.docs.map(d => deleteDoc(d.ref)));
+  await Promise.all(snap.docs.map((d) => deleteDoc(d.ref)));
 }
 
 // ─── TOAST ────────────────────────────────────────────────────
@@ -523,43 +577,68 @@ function showToast(msg, type = "") {
 
 // ─── AUTH ─────────────────────────────────────────────────────
 function showAuth(screenId) {
-  document.querySelectorAll(".auth-screen").forEach(s => s.classList.remove("active"));
+  document
+    .querySelectorAll(".auth-screen")
+    .forEach((s) => s.classList.remove("active"));
   document.getElementById(screenId).classList.add("active");
 }
 
 function togglePw(inputId, btn) {
   const inp = document.getElementById(inputId);
-  if (inp.type === "password") { inp.type = "text"; btn.textContent = "🙈"; }
-  else { inp.type = "password"; btn.textContent = "👁️"; }
+  if (inp.type === "password") {
+    inp.type = "text";
+    btn.textContent = "🙈";
+  } else {
+    inp.type = "password";
+    btn.textContent = "👁️";
+  }
 }
 
 async function doLogin() {
   const id = document.getElementById("login-identifier").value.trim();
   const pw = document.getElementById("login-password").value;
-  if (!id || !pw) { showToast("Lengkapi semua field!", "error"); return; }
+  if (!id || !pw) {
+    showToast("Lengkapi semua field!", "error");
+    return;
+  }
 
   const loginBtn = document.querySelector("#login-screen .btn-primary");
-  if (loginBtn) { loginBtn.textContent = "Masuk..."; loginBtn.disabled = true; }
+  if (loginBtn) {
+    loginBtn.textContent = "Masuk...";
+    loginBtn.disabled = true;
+  }
 
   try {
-    // FIX: Gunakan query where() — tidak scan seluruh koleksi users
     let email = id;
     if (!id.includes("@")) {
-      const q = query(collection(db, "users"), where("username", "==", id), limit(1));
+      const q = query(
+        collection(db, "users"),
+        where("username", "==", id),
+        limit(1),
+      );
       const snap = await getDocs(q);
-      if (snap.empty) { showToast("Username tidak ditemukan!", "error"); return; }
+      if (snap.empty) {
+        showToast("Username tidak ditemukan!", "error");
+        return;
+      }
       email = snap.docs[0].data().email;
     }
     await signInWithEmailAndPassword(auth, email, pw);
-    // onAuthStateChanged akan handle loginSuccess
   } catch (e) {
-    const msg = e.code === "auth/invalid-credential" ? "Email/password salah!" :
-                e.code === "auth/user-not-found" ? "Akun tidak ditemukan!" :
-                e.code === "auth/too-many-requests" ? "Terlalu banyak percobaan. Coba lagi nanti!" :
-                "Login gagal: " + e.message;
+    const msg =
+      e.code === "auth/invalid-credential"
+        ? "Email/password salah!"
+        : e.code === "auth/user-not-found"
+          ? "Akun tidak ditemukan!"
+          : e.code === "auth/too-many-requests"
+            ? "Terlalu banyak percobaan. Coba lagi nanti!"
+            : "Login gagal: " + e.message;
     showToast(msg, "error");
   } finally {
-    if (loginBtn) { loginBtn.textContent = "Masuk →"; loginBtn.disabled = false; }
+    if (loginBtn) {
+      loginBtn.textContent = "Masuk →";
+      loginBtn.disabled = false;
+    }
   }
 }
 
@@ -569,32 +648,61 @@ async function doRegister() {
   const pw = document.getElementById("reg-password").value;
   const confirm = document.getElementById("reg-confirm").value;
 
-  if (!username || !email || !pw || !confirm) { showToast("Lengkapi semua field!", "error"); return; }
-  if (pw.length < 6) { showToast("Password minimal 6 karakter!", "error"); return; }
-  if (pw !== confirm) { showToast("Password tidak sama!", "error"); return; }
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showToast("Format email tidak valid!", "error"); return; }
+  if (!username || !email || !pw || !confirm) {
+    showToast("Lengkapi semua field!", "error");
+    return;
+  }
+  if (pw.length < 6) {
+    showToast("Password minimal 6 karakter!", "error");
+    return;
+  }
+  if (pw !== confirm) {
+    showToast("Password tidak sama!", "error");
+    return;
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    showToast("Format email tidak valid!", "error");
+    return;
+  }
 
   const regBtn = document.querySelector("#register-screen .btn-primary");
-  if (regBtn) { regBtn.textContent = "Mendaftar..."; regBtn.disabled = true; }
+  if (regBtn) {
+    regBtn.textContent = "Mendaftar...";
+    regBtn.disabled = true;
+  }
 
   try {
-    // FIX: Gunakan query where() — tidak scan seluruh koleksi users
-    const q = query(collection(db, "users"), where("username", "==", username), limit(1));
+    const q = query(
+      collection(db, "users"),
+      where("username", "==", username),
+      limit(1),
+    );
     const snap = await getDocs(q);
-    if (!snap.empty) { showToast("Username sudah dipakai!", "error"); return; }
+    if (!snap.empty) {
+      showToast("Username sudah dipakai!", "error");
+      return;
+    }
 
     const cred = await createUserWithEmailAndPassword(auth, email, pw);
-    const joined = new Date().toLocaleDateString("id-ID", { month: "long", year: "numeric" });
+    const joined = new Date().toLocaleDateString("id-ID", {
+      month: "long",
+      year: "numeric",
+    });
     await fsSetUser(cred.user.uid, { username, email, avatar: "👤", joined });
     showToast("Akun berhasil dibuat! 🎉", "success");
-    // onAuthStateChanged akan handle loginSuccess
   } catch (e) {
-    const msg = e.code === "auth/email-already-in-use" ? "Email sudah terdaftar!" :
-                e.code === "auth/weak-password" ? "Password terlalu lemah!" :
-                "Registrasi gagal: " + e.message;
+    const msg =
+      e.code === "auth/email-already-in-use"
+        ? "Email sudah terdaftar!"
+        : e.code === "auth/weak-password"
+          ? "Password terlalu lemah!"
+          : "Registrasi gagal: " + e.message;
     showToast(msg, "error");
   } finally {
-    if (regBtn) { regBtn.textContent = "Daftar"; regBtn.disabled = false; }
+    if (regBtn) {
+      regBtn.textContent = "Daftar";
+      regBtn.disabled = false;
+    }
   }
 }
 
@@ -606,14 +714,47 @@ async function loginSuccess(user) {
   document.getElementById("app-wrapper").style.display = "block";
   updateProfileUI(state.currentUsername, userData);
   await initChatForUser(user.uid);
-  showToast("Selamat datang, " + (userData?.username || user.email) + "! 👋", "success");
-  // Update clock widget dengan username
+
+  const bdData = userData?.bodyData;
+  if (
+    bdData &&
+    bdData.weight &&
+    bdData.height &&
+    bdData.age &&
+    bdData.gender &&
+    bdData.activity
+  ) {
+    let bmr =
+      bdData.gender === "pria"
+        ? 88.36 + 13.4 * bdData.weight + 4.8 * bdData.height - 5.7 * bdData.age
+        : 447.6 + 9.2 * bdData.weight + 3.1 * bdData.height - 4.3 * bdData.age;
+    const actMult = { ringan: 1.375, sedang: 1.55, berat: 1.725 };
+    const tdee = Math.round(bmr * actMult[bdData.activity]);
+    const goalAdj = { diet: -400, healthy: 0, bulking: 450 };
+    const target = Math.max(1200, tdee + goalAdj[bdData.goal]);
+
+    state.weight = bdData.weight;
+    state.height = bdData.height;
+    state.age = bdData.age;
+    state.gender = bdData.gender;
+    state.activity = bdData.activity;
+    state.goal = bdData.goal;
+    state.bmr = Math.round(bmr);
+    state.tdee = tdee;
+    state.targetCalories = target;
+    state.mealCalories = Math.round(target * 0.35);
+    Object.assign(analisisState, bdData);
+  }
+  showToast(
+    "Selamat datang, " + (userData?.username || user.email) + "! 👋",
+    "success",
+  );
   if (window.setClockUsername) window.setClockUsername(state.currentUsername);
   switchTab("home");
 }
 
 async function doLogout() {
-  stopCamera(); // FIX: pastikan kamera AR berhenti sebelum logout
+  stopCamera();
   document.getElementById("logout-modal").style.display = "none";
   await signOut(auth);
   state.currentUser = null;
@@ -634,7 +775,6 @@ function updateProfileUI(username, userData) {
   const avatar = userData?.avatar || "👤";
   const email = userData?.email || "";
   document.getElementById("profile-avatar-display").textContent = avatar;
-
   document.getElementById("profile-username-display").textContent = username;
   document.getElementById("profile-email-display").textContent = email;
   document.getElementById("topbar-avatar").textContent = avatar;
@@ -669,6 +809,9 @@ async function showProfileSub(id) {
   if (id === "riwayat") {
     renderRiwayat();
   }
+  if (id === "progress") {
+    renderProgressInProfile();
+  }
 }
 
 function hideProfileSub() {
@@ -689,50 +832,69 @@ async function saveProfile() {
   const newEmail = document.getElementById("edit-email").value.trim();
   const newPw = document.getElementById("edit-password").value;
 
-  if (!newUsername || !newEmail) { showToast("Lengkapi field wajib!", "error"); return; }
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) { showToast("Format email tidak valid!", "error"); return; }
-  if (newPw && newPw.length < 6) { showToast("Password minimal 6 karakter!", "error"); return; }
+  if (!newUsername || !newEmail) {
+    showToast("Lengkapi field wajib!", "error");
+    return;
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) {
+    showToast("Format email tidak valid!", "error");
+    return;
+  }
+  if (newPw && newPw.length < 6) {
+    showToast("Password minimal 6 karakter!", "error");
+    return;
+  }
 
   try {
     const uid = state.currentUser;
     const avatar = tempAvatar || (await fsGetUser(uid))?.avatar || "👤";
-
     const emailChanged = newEmail !== auth.currentUser.email;
 
-    // FIX: Reauth dulu jika ada perubahan sensitif (email atau password)
-    // updateEmail & updatePassword sama-sama butuh recent login
     if (emailChanged || newPw) {
       const pwField = document.getElementById("edit-current-password");
-      const currentPw = pwField?.value || prompt("Masukkan password saat ini untuk konfirmasi perubahan:");
-      if (!currentPw) { showToast("Password lama diperlukan untuk perubahan akun!", "error"); return; }
-      const credential = EmailAuthProvider.credential(auth.currentUser.email, currentPw);
+      const currentPw =
+        pwField?.value ||
+        prompt("Masukkan password saat ini untuk konfirmasi perubahan:");
+      if (!currentPw) {
+        showToast("Password lama diperlukan untuk perubahan akun!", "error");
+        return;
+      }
+      const credential = EmailAuthProvider.credential(
+        auth.currentUser.email,
+        currentPw,
+      );
       await reauthenticateWithCredential(auth.currentUser, credential);
     }
 
-    // Update email di Firebase Auth jika berubah
     if (emailChanged) {
       await updateEmail(auth.currentUser, newEmail);
     }
-
-    // Update password jika diisi
     if (newPw) {
       await updatePassword(auth.currentUser, newPw);
     }
 
-    // Simpan ke Firestore
     await fsSetUser(uid, { username: newUsername, email: newEmail, avatar });
 
     state.currentUsername = newUsername;
     tempAvatar = null;
-    updateProfileUI(newUsername, { username: newUsername, email: newEmail, avatar });
+    updateProfileUI(newUsername, {
+      username: newUsername,
+      email: newEmail,
+      avatar,
+    });
     showToast("Profil berhasil disimpan! ✓", "success");
     hideProfileSub();
   } catch (e) {
-    const msg = e.code === "auth/wrong-password" ? "Password lama salah!" :
-                e.code === "auth/invalid-credential" ? "Password lama salah!" :
-                e.code === "auth/requires-recent-login" ? "Silakan logout & login ulang dulu!" :
-                e.code === "auth/email-already-in-use" ? "Email sudah dipakai akun lain!" :
-                "Gagal simpan profil: " + e.message;
+    const msg =
+      e.code === "auth/wrong-password"
+        ? "Password lama salah!"
+        : e.code === "auth/invalid-credential"
+          ? "Password lama salah!"
+          : e.code === "auth/requires-recent-login"
+            ? "Silakan logout & login ulang dulu!"
+            : e.code === "auth/email-already-in-use"
+              ? "Email sudah dipakai akun lain!"
+              : "Gagal simpan profil: " + e.message;
     showToast(msg, "error");
   }
 }
@@ -740,27 +902,50 @@ async function saveProfile() {
 // ─── RIWAYAT ──────────────────────────────────────────────────
 let riwayatFilter = "all";
 let _riwayatCache = [];
-let _riwayatCacheDirty = true; // FIX: flag cache agar tidak re-fetch tiap buka tab
+let _riwayatCacheDirty = true;
 
 function setRiwayatFilter(filter, btn) {
   riwayatFilter = filter;
-  document.querySelectorAll(".riwayat-filter-btn").forEach((b) => b.classList.remove("active"));
+  document
+    .querySelectorAll(".riwayat-filter-btn")
+    .forEach((b) => b.classList.remove("active"));
   btn.classList.add("active");
   filterRiwayat();
 }
 
 function filterRiwayat() {
-  const query = (document.getElementById("riwayat-search")?.value || "").toLowerCase().trim();
+  const query = (document.getElementById("riwayat-search")?.value || "")
+    .toLowerCase()
+    .trim();
   const now = new Date();
   const filtered = _riwayatCache.filter((r) => {
     if (riwayatFilter !== "all") {
       const rDate = new Date(r.rawTime || r.time);
-      if (riwayatFilter === "today" && rDate.toDateString() !== now.toDateString()) return false;
-      if (riwayatFilter === "week") { const w = new Date(now); w.setDate(now.getDate() - 7); if (rDate < w) return false; }
-      if (riwayatFilter === "month" && (rDate.getMonth() !== now.getMonth() || rDate.getFullYear() !== now.getFullYear())) return false;
+      if (
+        riwayatFilter === "today" &&
+        rDate.toDateString() !== now.toDateString()
+      )
+        return false;
+      if (riwayatFilter === "week") {
+        const w = new Date(now);
+        w.setDate(now.getDate() - 7);
+        if (rDate < w) return false;
+      }
+      if (
+        riwayatFilter === "month" &&
+        (rDate.getMonth() !== now.getMonth() ||
+          rDate.getFullYear() !== now.getFullYear())
+      )
+        return false;
     }
     if (query) {
-      const s = ((r.name || "") + " " + (r.goal || "") + " " + (r.meal || "")).toLowerCase();
+      const s = (
+        (r.name || "") +
+        " " +
+        (r.goal || "") +
+        " " +
+        (r.meal || "")
+      ).toLowerCase();
       if (!s.includes(query)) return false;
     }
     return true;
@@ -770,13 +955,14 @@ function filterRiwayat() {
 
 async function renderRiwayat() {
   riwayatFilter = "all";
-  document.querySelectorAll(".riwayat-filter-btn").forEach((b) => b.classList.remove("active"));
+  document
+    .querySelectorAll(".riwayat-filter-btn")
+    .forEach((b) => b.classList.remove("active"));
   const allBtn = document.getElementById("filter-all");
   if (allBtn) allBtn.classList.add("active");
   const searchEl = document.getElementById("riwayat-search");
   if (searchEl) searchEl.value = "";
 
-  // FIX: Gunakan cache jika data belum berubah, hemat Firestore read
   if (!_riwayatCacheDirty && _riwayatCache.length > 0) {
     renderStats(_riwayatCache);
     renderRiwayatList(_riwayatCache);
@@ -794,34 +980,51 @@ async function renderRiwayat() {
 
 function renderStats(riwayat) {
   const total = riwayat.length;
+  const foodEntries = riwayat.filter((r) => r.type === "food");
   const kaloriEntries = riwayat.filter((r) => r.type === "kalori");
-  const avgKalori = kaloriEntries.length
-    ? Math.round(kaloriEntries.reduce((s, r) => s + (r.targetCalories || 0), 0) / kaloriEntries.length)
-    : 0;
 
-  // Goal terfavorit
+  const avgKalori = foodEntries.length
+    ? Math.round(
+      foodEntries.reduce((s, r) => s + (r.calories || 0), 0) /
+      foodEntries.length,
+    )
+    : kaloriEntries.length
+      ? Math.round(
+        kaloriEntries.reduce((s, r) => s + (r.targetCalories || 0), 0) /
+        kaloriEntries.length,
+      )
+      : 0;
+
   const goalCount = {};
-  kaloriEntries.forEach((r) => {
+  foodEntries.forEach((r) => {
     const g = (r.goal || "").replace(/[^a-zA-Z]/g, "").toLowerCase();
-    goalCount[g] = (goalCount[g] || 0) + 1;
+    if (g) goalCount[g] = (goalCount[g] || 0) + 1;
   });
+
   const topGoal = Object.entries(goalCount).sort((a, b) => b[1] - a[1])[0];
   const goalEmoji = { diet: "🥗", healthy: "💚", bulking: "💪" };
-  const goalLabel = topGoal ? (goalEmoji[topGoal[0]] || "") + " " + topGoal[0].charAt(0).toUpperCase() + topGoal[0].slice(1) : "-";
+  const goalLabel = topGoal
+    ? (goalEmoji[topGoal[0]] || "") +
+    " " +
+    topGoal[0].charAt(0).toUpperCase() +
+    topGoal[0].slice(1)
+    : "-";
 
   document.getElementById("stat-total").textContent = total;
-  document.getElementById("stat-kalori").textContent = avgKalori ? avgKalori + " kcal" : "-";
+  document.getElementById("stat-kalori").textContent = avgKalori
+    ? avgKalori + " kcal"
+    : "-";
   document.getElementById("stat-goal").textContent = goalLabel;
 }
 
 function renderRiwayatList(riwayat) {
   const list = document.getElementById("riwayat-list");
   if (!riwayat.length) {
-    list.innerHTML = '<div class="riwayat-empty">Tidak ada riwayat yang cocok. 🔍<br>Coba ubah filter atau kata kunci pencarian.</div>';
+    list.innerHTML =
+      '<div class="riwayat-empty">Tidak ada riwayat yang cocok. 🔍<br>Coba ubah filter atau kata kunci pencarian.</div>';
     return;
   }
 
-  // Kelompokkan per tanggal
   const groups = {};
   riwayat.forEach((r, idx) => {
     const dateKey = (() => {
@@ -829,17 +1032,26 @@ function renderRiwayatList(riwayat) {
         const d = new Date(r.rawTime || r.time);
         if (isNaN(d)) return r.time?.split(",")[0] || "Lainnya";
         const today = new Date();
-        const yesterday = new Date(); yesterday.setDate(today.getDate() - 1);
+        const yesterday = new Date();
+        yesterday.setDate(today.getDate() - 1);
         if (d.toDateString() === today.toDateString()) return "Hari Ini";
         if (d.toDateString() === yesterday.toDateString()) return "Kemarin";
-        return d.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
-      } catch { return "Lainnya"; }
+        return d.toLocaleDateString("id-ID", {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        });
+      } catch {
+        return "Lainnya";
+      }
     })();
     if (!groups[dateKey]) groups[dateKey] = [];
     groups[dateKey].push({ ...r, _idx: idx });
   });
 
-  list.innerHTML = Object.entries(groups).map(([date, items]) => `
+  list.innerHTML = Object.entries(groups)
+    .map(
+      ([date, items]) => `
     <div class="riwayat-date-group">
       <div class="riwayat-date-header">
         <span>${date}</span>
@@ -848,7 +1060,9 @@ function renderRiwayatList(riwayat) {
       </div>
       ${items.map((r) => renderRiwayatItem(r)).join("")}
     </div>
-  `).join("");
+  `,
+    )
+    .join("");
 }
 
 function renderRiwayatItem(r) {
@@ -877,8 +1091,8 @@ function renderRiwayatItem(r) {
 
 async function deleteRiwayatItem(docId) {
   await fsDeleteRiwayat(state.currentUser, docId);
-  _riwayatCache = _riwayatCache.filter(r => r._docId !== docId);
-  _riwayatCacheDirty = false; // cache masih valid, sudah di-update lokal
+  _riwayatCache = _riwayatCache.filter((r) => r._docId !== docId);
+  _riwayatCacheDirty = false;
   renderStats(_riwayatCache);
   filterRiwayat();
   showToast("Riwayat dihapus", "success");
@@ -900,22 +1114,16 @@ function navigate(target, from) {
     .querySelectorAll(".section")
     .forEach((s) => s.classList.remove("active"));
   document.getElementById(target).classList.add("active");
-  state.history.push(target);
   updateNavHighlight(target);
-  const noNav = ["loading-section"];
-  const bnav = document.getElementById("bottom-nav");
-  bnav.style.transform = noNav.includes(target)
-    ? "translateY(100%)"
-    : "translateY(0)";
+  document.getElementById("bottom-nav").style.transform = "translateY(0)";
 }
 
 function updateNavHighlight(sectionId) {
   const map = {
     "home-section": "home",
-    "input-section": "home",
-    "loading-section": "home",
     "result-section": "home",
     "detail-section": "home",
+    "analisis-section": "analisis",
     "chat-section": "chat",
     "profile-section": "profile",
   };
@@ -928,9 +1136,10 @@ function updateNavHighlight(sectionId) {
 }
 
 function switchTab(tab) {
-  stopCamera(); // FIX: hentikan kamera jika aktif saat pindah tab
+  stopCamera();
   const map = {
     home: "home-section",
+    analisis: "analisis-section",
     chat: "chat-section",
     profile: "profile-section",
   };
@@ -941,19 +1150,17 @@ function switchTab(tab) {
   document
     .querySelectorAll(".nav-item")
     .forEach((n) => n.classList.remove("active"));
-  document.getElementById("nav-" + tab).classList.add("active");
+  document.getElementById("nav-" + tab)?.classList.add("active");
   document.getElementById("bottom-nav").style.transform = "translateY(0)";
-  if (tab === "profile") {
-    hideProfileSub();
-  }
-  if (tab === "chat") {
-    renderChatFromStorage();
-  }
+  if (tab === "profile") hideProfileSub();
+  if (tab === "chat") renderChatFromStorage();
+  if (tab === "analisis") initAnalisisTab();
 }
 
 // ─── HOME STEP LOGIC ──────────────────────────────────────────
 function selectGoal(goal, el) {
   state.goal = goal;
+  analisisState.goal = goal;
   document
     .querySelectorAll("#goal-grid .choice-card")
     .forEach((c) => c.classList.remove("selected"));
@@ -975,6 +1182,52 @@ function goToStep2() {
   const s2 = document.getElementById("home-step2");
   s2.style.display = "block";
   s2.className = "slide-up";
+
+  const h = new Date().getHours();
+  let autoMeal, autoLabel, autoIcon;
+
+  if (h >= 6 && h < 9) {
+    autoMeal = "sarapan";
+    autoLabel = "Sarapan";
+    autoIcon = "🌅";
+  } else if (h >= 12 && h < 14) {
+    autoMeal = "siang";
+    autoLabel = "Makan Siang";
+    autoIcon = "☀️";
+  } else if (h >= 18 && h < 21) {
+    autoMeal = "malam";
+    autoLabel = "Makan Malam";
+    autoIcon = "🌙";
+  } else {
+    if (h < 6) {
+      autoMeal = "sarapan";
+      autoLabel = "Sarapan";
+      autoIcon = "🌅";
+    } else if (h >= 9 && h < 12) {
+      autoMeal = "siang";
+      autoLabel = "Makan Siang";
+      autoIcon = "☀️";
+    } else if (h >= 14 && h < 18) {
+      autoMeal = "malam";
+      autoLabel = "Makan Malam";
+      autoIcon = "🌙";
+    } else {
+      autoMeal = "sarapan";
+      autoLabel = "Sarapan";
+      autoIcon = "🌅";
+    }
+  }
+
+  const badge = document.getElementById("meal-autodetect-text");
+  if (badge) badge.textContent = autoIcon + " Terdeteksi: " + autoLabel;
+
+  const cards = document.querySelectorAll("#meal-grid .choice-card");
+  cards.forEach((c) => c.classList.remove("selected"));
+  const mealIndex = { sarapan: 0, siang: 1, malam: 2 }[autoMeal];
+  if (cards[mealIndex]) {
+    cards[mealIndex].classList.add("selected");
+    selectMeal(autoMeal, cards[mealIndex]);
+  }
 }
 
 function backToStep1() {
@@ -982,269 +1235,37 @@ function backToStep1() {
   document.getElementById("home-step1").style.display = "block";
 }
 
-function goToInput() {
+function goToResult() {
+  if (!state.goal || !state.meal) {
+    showToast("Pilih goal dan waktu makan dulu!", "error");
+    return;
+  }
+
   const mealMap = {
     sarapan: "Sarapan",
     siang: "Makan Siang",
     malam: "Makan Malam",
   };
   const goalMap = { diet: "Diet", healthy: "Healthy", bulking: "Bulking" };
-  document.getElementById("input-breadcrumb").innerHTML =
-    `<span>${goalMap[state.goal]}</span><span class="sep">›</span><span>${mealMap[state.meal]}</span>`;
-  navigate("input-section", "home-section");
-}
 
-// ─── INPUT FORM ───────────────────────────────────────────────
-function selectGender(g) {
-  state.gender = g;
-  document
-    .getElementById("radio-pria")
-    .classList.toggle("selected", g === "pria");
-  document
-    .getElementById("radio-wanita")
-    .classList.toggle("selected", g === "wanita");
-}
-
-function selectActivity(a) {
-  state.activity = a;
-  ["ringan", "sedang", "berat"].forEach((x) =>
-    document.getElementById("radio-" + x).classList.toggle("selected", x === a),
-  );
-}
-
-function confirmInput() {
-  const w = parseFloat(document.getElementById("weight").value);
-  const h = parseFloat(document.getElementById("height").value);
-  const a = parseFloat(document.getElementById("age").value);
-  if (!w || !h || !a || !state.gender || !state.activity) {
-    showToast("Mohon lengkapi semua data!", "error");
-    return;
-  }
-  if (w < 30 || w > 300) {
-    showToast("Berat badan tidak valid!", "error");
-    return;
-  }
-  if (h < 100 || h > 250) {
-    showToast("Tinggi badan tidak valid!", "error");
-    return;
-  }
-  if (a < 10 || a > 100) {
-    showToast("Usia tidak valid!", "error");
-    return;
-  }
-  state.weight = w;
-  state.height = h;
-  state.age = a;
-  navigate("loading-section", "input-section");
-  setTimeout(calculateAndShow, 1800);
-}
-
-// ─── CALCULATION ──────────────────────────────────────────────
-function calculateAndShow() {
-  // Harris-Benedict
-  let bmr;
-  if (state.gender === "pria") {
-    bmr = 88.36 + 13.4 * state.weight + 4.8 * state.height - 5.7 * state.age;
-  } else {
-    bmr = 447.6 + 9.2 * state.weight + 3.1 * state.height - 4.3 * state.age;
-  }
-  const actMult = { ringan: 1.375, sedang: 1.55, berat: 1.725 };
-  const tdee = Math.round(bmr * actMult[state.activity]);
-  const goalAdj = { diet: -400, healthy: 0, bulking: 450 };
-  const target = Math.max(1200, tdee + goalAdj[state.goal]);
-  const mealPct = { sarapan: 0.25, siang: 0.4, malam: 0.35 };
-  const mealCal = Math.round(target * mealPct[state.meal]);
-
-  state.bmr = Math.round(bmr);
-  state.tdee = tdee;
-  state.targetCalories = target;
-  state.mealCalories = mealCal;
-
-  // Save to riwayat
-  const goalMap = {
-    diet: "Diet 🥗",
-    healthy: "Healthy 💚",
-    bulking: "Bulking 💪",
-  };
-  const mealMap = {
-    sarapan: "Sarapan 🌅",
-    siang: "Makan Siang ☀️",
-    malam: "Makan Malam 🌙",
-  };
-  _riwayatCacheDirty = true; // FIX: invalidate cache saat ada entri kalori baru
-  fsAddRiwayat(state.currentUser, {
-    type: "kalori",
-    goal: goalMap[state.goal],
-    meal: mealMap[state.meal],
-    tdee,
-    targetCalories: target,
-    mealCalories: mealCal,
-    time: fmtTime(),
-    rawTime: new Date().toISOString(),
-  });
-
-  buildResultPage(tdee, target, mealCal);
-  navigate("result-section", "loading-section");
-}
-
-function getMealLabel(m) {
-  return (
-    { sarapan: "Sarapan", siang: "Makan Siang", malam: "Makan Malam" }[m] || m
-  );
-}
-function getGoalLabel(g) {
-  return { diet: "Diet", healthy: "Healthy", bulking: "Bulking" }[g] || g;
-}
-
-function buildResultPage(tdee, target, mealCal) {
   document.getElementById("result-breadcrumb").innerHTML =
-    `<span>${getGoalLabel(state.goal)}</span><span class="sep">›</span><span>${getMealLabel(state.meal)}</span>`;
-  document.getElementById("result-sub").textContent =
-    `Berdasarkan data tubuhmu (${state.weight}kg · ${state.height}cm · ${state.age}thn · ${state.gender === "pria" ? "Pria" : "Wanita"})`;
+    "<span>" +
+    goalMap[state.goal] +
+    "</span><span class='sep'>›</span><span>" +
+    mealMap[state.meal] +
+    "</span>";
 
-  const bmi = (state.weight / (state.height / 100) ** 2).toFixed(1);
-  const bmiNum = parseFloat(bmi);
-  const bmiLabel =
-    bmiNum < 18.5 ? "Kurus" : bmiNum < 25 ? "Normal" : bmiNum < 30 ? "Overweight" : "Obesitas";
-  const bmiColor =
-    bmiNum < 18.5 ? "#00b4f5" : bmiNum < 25 ? "#00e5a0" : bmiNum < 30 ? "#ffb347" : "#ff6b6b";
-  // BMI bar: range 10–40, clamp to 0–100%
-  const bmiPct = Math.min(100, Math.max(0, ((bmiNum - 10) / 30) * 100)).toFixed(1);
-
-  document.getElementById("calorie-cards").innerHTML = `
-    <div class="calorie-card"><div class="calorie-card-icon">⚙️</div><div class="calorie-card-val">${state.bmr}</div><div class="calorie-card-label">BMR (kcal/hari)</div></div>
-    <div class="calorie-card highlight"><div class="calorie-card-icon">🔥</div><div class="calorie-card-val">${tdee}</div><div class="calorie-card-label">TDEE (kalori terbakar)</div></div>
-    <div class="calorie-card highlight"><div class="calorie-card-icon">🎯</div><div class="calorie-card-val">${target}</div><div class="calorie-card-label">Target Harian</div></div>
-    <div class="calorie-card"><div class="calorie-card-icon">🍽️</div><div class="calorie-card-val">${mealCal}</div><div class="calorie-card-label">Kalori ${getMealLabel(state.meal)}</div></div>
-  `;
-
-  // ── BMI Line Chart SVG ──
-  const svgW = 300, svgH = 90, padL = 8, padR = 8, padT = 28, padB = 24;
-  const chartW = svgW - padL - padR;
-  const bmiMin = 10, bmiMax = 40;
-  const bmiToX = (v) => padL + ((v - bmiMin) / (bmiMax - bmiMin)) * chartW;
-
-  const zones = [
-    { label: "Kurus",      val: 14.25, color: "#00b4f5" },
-    { label: "Normal",     val: 21.75, color: "#00e5a0" },
-    { label: "Overweight", val: 27.5,  color: "#ffb347" },
-    { label: "Obesitas",   val: 35,    color: "#ff6b6b" },
-  ];
-  const thresholds = [
-    { val: 18.5, color: "#00b4f5" },
-    { val: 25,   color: "#00e5a0" },
-    { val: 30,   color: "#ffb347" },
-  ];
-  const zoneY = [svgH - padB - 10, svgH - padB - 30, svgH - padB - 20, svgH - padB - 8];
-
-  const markerX = bmiToX(Math.min(bmiMax, Math.max(bmiMin, bmiNum)));
-  const pts = zones.map((z, i) => ({ x: bmiToX(z.val), y: zoneY[i] }));
-  let markerY = pts[0].y;
-  for (let i = 0; i < pts.length - 1; i++) {
-    if (markerX >= pts[i].x && markerX <= pts[i + 1].x) {
-      const t = (markerX - pts[i].x) / (pts[i + 1].x - pts[i].x);
-      markerY = pts[i].y + t * (pts[i + 1].y - pts[i].y);
-      break;
-    }
-  }
-  if (markerX < pts[0].x) markerY = pts[0].y;
-  if (markerX > pts[pts.length - 1].x) markerY = pts[pts.length - 1].y;
-
-  // Build SVG strings menggunakan string concatenation (bukan nested template literal)
-  const polyPoints = zones.map((z, i) => bmiToX(z.val) + "," + zoneY[i]).join(" ");
-  const areaPoints = padL + "," + (svgH - padB) + " " + polyPoints + " " + (svgW - padR) + "," + (svgH - padB);
-
-  const gradStops = '<stop offset="0%" stop-color="#00b4f5"/>'
-    + '<stop offset="33%" stop-color="#00e5a0"/>'
-    + '<stop offset="66%" stop-color="#ffb347"/>'
-    + '<stop offset="100%" stop-color="#ff6b6b"/>';
-
-  const zoneDotsHtml = zones.map((z, i) =>
-    '<circle cx="' + bmiToX(z.val) + '" cy="' + zoneY[i] + '" r="3" fill="' + z.color + '" opacity="0.5"/>'
-  ).join("");
-
-  const zoneLabelsHtml = zones.map((z, i) =>
-    '<text x="' + bmiToX(z.val) + '" y="' + (svgH - 4) + '" text-anchor="middle" fill="' + z.color + '" font-size="8" font-weight="600" opacity="0.75">' + z.label + '</text>'
-  ).join("");
-
-  const thresholdLinesHtml = thresholds.map(t =>
-    '<line x1="' + bmiToX(t.val) + '" y1="' + padT + '" x2="' + bmiToX(t.val) + '" y2="' + (svgH - padB) + '" stroke="' + t.color + '" stroke-width="1" stroke-dasharray="3,3" opacity="0.3"/>'
-  ).join("");
-
-  const bmiSvg = '<svg viewBox="0 0 ' + svgW + ' ' + svgH + '" width="100%" style="overflow:visible;display:block;margin:0 0 6px">'
-    + '<defs>'
-    + '<linearGradient id="lineGrad" x1="0" x2="1" y1="0" y2="0">' + gradStops + '</linearGradient>'
-    + '<linearGradient id="areaGrad" x1="0" x2="0" y1="0" y2="1">'
-    + '<stop offset="0%" stop-color="' + bmiColor + '" stop-opacity="0.15"/>'
-    + '<stop offset="100%" stop-color="' + bmiColor + '" stop-opacity="0"/>'
-    + '</linearGradient></defs>'
-    + '<polygon points="' + areaPoints + '" fill="url(#areaGrad)" opacity="0.6"/>'
-    + thresholdLinesHtml
-    + '<polyline points="' + polyPoints + '" fill="none" stroke="url(#lineGrad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>'
-    + zoneDotsHtml
-    + '<line x1="' + markerX + '" y1="' + padT + '" x2="' + markerX + '" y2="' + (svgH - padB) + '" stroke="' + bmiColor + '" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.6"/>'
-    + '<circle cx="' + markerX + '" cy="' + markerY + '" r="6" fill="' + bmiColor + '" opacity="0.2"/>'
-    + '<circle cx="' + markerX + '" cy="' + markerY + '" r="4" fill="' + bmiColor + '" stroke="#0a0a0f" stroke-width="1.5"/>'
-    + '<text x="' + markerX + '" y="' + (padT - 6) + '" text-anchor="middle" fill="' + bmiColor + '" font-size="10" font-weight="800">' + bmi + '</text>'
-    + zoneLabelsHtml
-    + '</svg>';
-
-  const goalNote = { diet: "Defisit 400 kcal dari TDEE untuk penurunan berat badan optimal.", healthy: "Kalori seimbang dengan TDEE untuk menjaga berat badan ideal.", bulking: "Surplus 450 kcal dari TDEE untuk mendukung pertumbuhan otot." }[state.goal];
-
-  document.getElementById("target-banner").innerHTML =
-    '<div class="bmi-visual-wrap">'
-    + '<div class="bmi-visual-header">'
-    + '<span>📏 <strong>Indeks Massa Tubuh (BMI)</strong></span>'
-    + '<span class="bmi-value-badge" style="color:' + bmiColor + ';border-color:' + bmiColor + '20;background:' + bmiColor + '15">' + bmi + ' · ' + bmiLabel + '</span>'
-    + '</div>'
-    + bmiSvg
-    + '</div>'
-    + '<div class="bmi-goal-note">💡 <strong>Target ' + getGoalLabel(state.goal) + ':</strong> ' + goalNote + '</div>';
-
-    // ── Makro Harian ──
-  const macroGoal = {
-    diet:    { protein: Math.round(state.weight * 2.0), fat: Math.round(target * 0.25 / 9), carbs: Math.round((target - state.weight * 2.0 * 4 - Math.round(target * 0.25)) / 4) },
-    healthy: { protein: Math.round(state.weight * 1.6), fat: Math.round(target * 0.30 / 9), carbs: Math.round((target - state.weight * 1.6 * 4 - Math.round(target * 0.30)) / 4) },
-    bulking: { protein: Math.round(state.weight * 2.2), fat: Math.round(target * 0.28 / 9), carbs: Math.round((target - state.weight * 2.2 * 4 - Math.round(target * 0.28)) / 4) },
-  }[state.goal];
-
-  const goalTips = {
-    diet: ["Makan 5–6 kali kecil per hari", "Prioritaskan protein agar massa otot terjaga", "Kurangi karbohidrat simpel (nasi putih, gula)", "Hindari makan berat setelah jam 8 malam"],
-    healthy: ["Perbanyak sayur & buah setiap hari", "Konsumsi karbohidrat kompleks (oat, nasi merah)", "Minum air putih minimal 2 liter per hari", "Jaga porsi makan konsisten 3x sehari"],
-    bulking: ["Makan setiap 3 jam untuk surplus kalori", "Konsumsi protein dalam 30 menit setelah latihan", "Pilih karbohidrat padat (nasi, pasta, roti gandum)", "Tambahkan healthy fat dari alpukat & kacang-kacangan"],
-  }[state.goal];
-
-  document.getElementById("reason-box-result").innerHTML = `
-    <div class="macro-daily-section">
-      <div class="macro-daily-title">📊 Target Makro Harian</div>
-      <div class="macro-daily-grid">
-        <div class="macro-daily-card protein-card">
-          <div class="macro-daily-icon">🥩</div>
-          <div class="macro-daily-val">${macroGoal.protein}g</div>
-          <div class="macro-daily-kcal">${macroGoal.protein * 4} kcal</div>
-          <div class="macro-daily-label">Protein</div>
-        </div>
-        <div class="macro-daily-card fat-card">
-          <div class="macro-daily-icon">🧈</div>
-          <div class="macro-daily-val">${macroGoal.fat}g</div>
-          <div class="macro-daily-kcal">${macroGoal.fat * 9} kcal</div>
-          <div class="macro-daily-label">Lemak</div>
-        </div>
-        <div class="macro-daily-card carbs-card">
-          <div class="macro-daily-icon">🍚</div>
-          <div class="macro-daily-val">${macroGoal.carbs}g</div>
-          <div class="macro-daily-kcal">${macroGoal.carbs * 4} kcal</div>
-          <div class="macro-daily-label">Karbo</div>
-        </div>
-      </div>
-    </div>
-    <div class="tips-section">
-      <div class="tips-title">💡 Tips ${getGoalLabel(state.goal)}</div>
-      <div class="tips-list">
-        ${goalTips.map(t => `<div class="tip-item"><span class="tip-dot"></span><span>${t}</span></div>`).join("")}
-      </div>
-    </div>
-  `;
+  const hasBodyData = state.targetCalories > 0;
+  document.getElementById("result-sub").textContent = hasBodyData
+    ? "Target kalorimu: " +
+    state.targetCalories +
+    " kcal/hari · " +
+    mealMap[state.meal]
+    : "Rekomendasi untuk " +
+    goalMap[state.goal] +
+    " · " +
+    mealMap[state.meal] +
+    " — Analisis tubuhmu untuk hasil lebih akurat";
 
   currentFilteredFoods = foodData.filter(
     (f) => f.type === state.goal && f.meal === state.meal,
@@ -1269,10 +1290,564 @@ function buildResultPage(tdee, target, mealCal) {
   `,
     )
     .join("");
+
+  navigate("result-section", "home-section");
+
+  setTimeout(() => {
+    document.getElementById("home-step2").style.display = "none";
+    document.getElementById("home-step1").style.display = "block";
+    document
+      .querySelectorAll("#goal-grid .choice-card")
+      .forEach((c) => c.classList.remove("selected"));
+    document.getElementById("next-step1").disabled = true;
+  }, 500);
+}
+
+// ─── TAB ANALISIS ─────────────────────────────────────────────
+function anSelectGender(g) {
+  analisisState.gender = g;
+  document
+    .getElementById("an-radio-pria")
+    .classList.toggle("selected", g === "pria");
+  document
+    .getElementById("an-radio-wanita")
+    .classList.toggle("selected", g === "wanita");
+}
+
+function anSelectActivity(a) {
+  analisisState.activity = a;
+  ["ringan", "sedang", "berat"].forEach((x) =>
+    document
+      .getElementById("an-radio-" + x)
+      .classList.toggle("selected", x === a),
+  );
+}
+
+function showAnalisisForm() {
+  document.getElementById("analisis-form-view").style.display = "block";
+  document.getElementById("analisis-result-view").style.display = "none";
+}
+
+async function initAnalisisTab() {
+  const uid = state.currentUser;
+  if (!uid) return;
+  const userData = await fsGetUser(uid);
+  const bd = userData?.bodyData;
+  if (!bd) return;
+
+  if (bd.weight) document.getElementById("an-weight").value = bd.weight;
+  if (bd.height) document.getElementById("an-height").value = bd.height;
+  if (bd.age) document.getElementById("an-age").value = bd.age;
+  if (bd.gender) anSelectGender(bd.gender);
+  if (bd.activity) anSelectActivity(bd.activity);
+
+  Object.assign(analisisState, bd);
+
+  if (bd.weight && bd.height && bd.age && bd.gender && bd.activity) {
+    showAnalisisResult(bd);
+  }
+}
+
+async function runAnalisis() {
+  const w = parseFloat(document.getElementById("an-weight").value);
+  const h = parseFloat(document.getElementById("an-height").value);
+  const a = parseFloat(document.getElementById("an-age").value);
+
+  if (!w || !h || !a || !analisisState.gender || !analisisState.activity) {
+    showToast("Lengkapi semua data!", "error");
+    return;
+  }
+  if (w < 30 || w > 300) {
+    showToast("Berat badan tidak valid!", "error");
+    return;
+  }
+  if (h < 100 || h > 250) {
+    showToast("Tinggi badan tidak valid!", "error");
+    return;
+  }
+  if (a < 10 || a > 100) {
+    showToast("Usia tidak valid!", "error");
+    return;
+  }
+
+  analisisState.weight = w;
+  analisisState.height = h;
+  analisisState.age = a;
+  analisisState.goal = state.goal || "healthy";
+
+  await fsSetUser(state.currentUser, { bodyData: { ...analisisState } });
+
+  let bmr;
+  if (analisisState.gender === "pria") {
+    bmr = 88.36 + 13.4 * w + 4.8 * h - 5.7 * a;
+  } else {
+    bmr = 447.6 + 9.2 * w + 3.1 * h - 4.3 * a;
+  }
+  const actMult = { ringan: 1.375, sedang: 1.55, berat: 1.725 };
+  const tdee = Math.round(bmr * actMult[analisisState.activity]);
+  const goalAdj = { diet: -400, healthy: 0, bulking: 450 };
+  const target = Math.max(1200, tdee + goalAdj[analisisState.goal]);
+
+  state.weight = w;
+  state.height = h;
+  state.age = a;
+  state.gender = analisisState.gender;
+  state.activity = analisisState.activity;
+  state.bmr = Math.round(bmr);
+  state.tdee = tdee;
+  state.targetCalories = target;
+  state.mealCalories = Math.round(target * 0.35);
+
+  showAnalisisResult({ ...analisisState, bmr: Math.round(bmr), tdee, target });
+  showToast("Analisis berhasil disimpan! ✓", "success");
+}
+
+function showAnalisisResult(data) {
+  const { weight, height, age, gender, activity, goal, bmr, tdee, target } =
+    data;
+
+  let _bmr = bmr,
+    _tdee = tdee,
+    _target = target;
+  if (!_bmr && weight && height && age && gender && activity && goal) {
+    _bmr =
+      gender === "pria"
+        ? 88.36 + 13.4 * weight + 4.8 * height - 5.7 * age
+        : 447.6 + 9.2 * weight + 3.1 * height - 4.3 * age;
+    const actMult = { ringan: 1.375, sedang: 1.55, berat: 1.725 };
+    _tdee = Math.round(_bmr * actMult[activity]);
+    const goalAdj = { diet: -400, healthy: 0, bulking: 450 };
+    _target = Math.max(1200, _tdee + goalAdj[goal]);
+    _bmr = Math.round(_bmr);
+  }
+
+  document.getElementById("analisis-form-view").style.display = "none";
+  document.getElementById("analisis-result-view").style.display = "block";
+
+  const bmi =
+    weight && height ? (weight / (height / 100) ** 2).toFixed(1) : "-";
+  const bmiNum = parseFloat(bmi);
+  const bmiLabel =
+    bmiNum < 18.5
+      ? "Kurus"
+      : bmiNum < 25
+        ? "Normal"
+        : bmiNum < 30
+          ? "Overweight"
+          : "Obesitas";
+  const bmiColor =
+    bmiNum < 18.5
+      ? "#00b4f5"
+      : bmiNum < 25
+        ? "#00e5a0"
+        : bmiNum < 30
+          ? "#ffb347"
+          : "#ff6b6b";
+
+  document.getElementById("analisis-result-sub").textContent =
+    (weight || "-") +
+    "kg · " +
+    (height || "-") +
+    "cm · " +
+    (age || "-") +
+    " thn · " +
+    (gender === "pria" ? "Pria" : "Wanita") +
+    " · BMI " +
+    bmi +
+    " (" +
+    bmiLabel +
+    ")";
+
+  document.getElementById("analisis-calorie-cards").innerHTML =
+    '<div class="calorie-card"><div class="calorie-card-icon">⚙️</div>' +
+    '<div class="calorie-card-val">' +
+    (_bmr || "-") +
+    "</div>" +
+    '<div class="calorie-card-label">BMR (kcal/hari)</div></div>' +
+    '<div class="calorie-card highlight"><div class="calorie-card-icon">🔥</div>' +
+    '<div class="calorie-card-val">' +
+    (_tdee || "-") +
+    "</div>" +
+    '<div class="calorie-card-label">TDEE</div></div>' +
+    '<div class="calorie-card highlight"><div class="calorie-card-icon">🎯</div>' +
+    '<div class="calorie-card-val">' +
+    (_target || "-") +
+    "</div>" +
+    '<div class="calorie-card-label">Target Harian</div></div>' +
+    '<div class="calorie-card"><div class="calorie-card-icon">📏</div>' +
+    '<div class="calorie-card-val" style="color:' +
+    bmiColor +
+    '">' +
+    bmi +
+    "</div>" +
+    '<div class="calorie-card-label">BMI · ' +
+    bmiLabel +
+    "</div></div>";
+
+  const bmiPct = Math.min(100, Math.max(0, ((bmiNum - 10) / 30) * 100));
+  document.getElementById("analisis-bmi-wrap").innerHTML =
+    '<div class="bmi-visual-wrap" style="margin-bottom:16px">' +
+    '<div class="bmi-visual-header">' +
+    "<span>📏 Status Berat Badan</span>" +
+    '<span class="bmi-value-badge" style="color:' +
+    bmiColor +
+    ";background:" +
+    bmiColor +
+    "15;border-color:" +
+    bmiColor +
+    '30">' +
+    bmi +
+    " · " +
+    bmiLabel +
+    "</span></div>" +
+    '<div style="background:rgba(255,255,255,0.05);border-radius:10px;height:8px;overflow:hidden;margin-bottom:8px">' +
+    '<div style="width:' +
+    bmiPct +
+    "%;height:100%;background:" +
+    bmiColor +
+    ';border-radius:10px;transition:width 1s ease"></div></div>' +
+    '<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted)">' +
+    "<span>Kurus &lt;18.5</span><span>Normal 18.5–24.9</span><span>Overweight 25–29.9</span><span>Obesitas ≥30</span></div></div>";
+
+  renderRekomendasiMakan(bmiNum, goal, _target, _tdee);
+}
+
+function renderRekomendasiMakan(bmiNum, goal, target, tdee) {
+  const el = document.getElementById("analisis-rekomendasi");
+  if (!el) return;
+
+  const mealPct = { sarapan: 0.25, siang: 0.4, malam: 0.35 };
+  const sarapanKal = Math.round((target || 0) * mealPct.sarapan);
+  const siangKal = Math.round((target || 0) * mealPct.siang);
+  const malamKal = Math.round((target || 0) * mealPct.malam);
+
+  const rekomendasiMakanan = getRekomendasiMakanan(bmiNum, goal);
+
+  el.innerHTML =
+    '<div class="section-title" style="margin-top:8px"><span>🍽️ Jadwal Makan Harian</span></div>' +
+    '<div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px">' +
+    buildMealScheduleCard(
+      "🌅",
+      "Sarapan",
+      "06.00 – 09.00",
+      sarapanKal,
+      "#00e5a0",
+    ) +
+    buildMealScheduleCard(
+      "☀️",
+      "Makan Siang",
+      "12.00 – 14.00",
+      siangKal,
+      "#00b4f5",
+    ) +
+    buildMealScheduleCard(
+      "🌙",
+      "Makan Malam",
+      "18.00 – 21.00",
+      malamKal,
+      "#ffb347",
+    ) +
+    buildMealScheduleCard(
+      "🥤",
+      "Snack (opsional)",
+      "10.00 & 16.00",
+      Math.round((target || 0) * 0.1),
+      "rgba(255,255,255,0.3)",
+    ) +
+    "</div>" +
+    '<div class="section-title"><span>✅ Makanan Dianjurkan</span></div>' +
+    '<div class="tips-section" style="margin-bottom:16px">' +
+    '<div class="tips-list">' +
+    rekomendasiMakanan.anjurkan
+      .map(
+        (item) =>
+          '<div class="tip-item"><span style="font-size:16px">' +
+          item.icon +
+          "</span>" +
+          '<div><strong style="font-size:13px;color:var(--text)">' +
+          item.nama +
+          "</strong>" +
+          '<div style="font-size:11px;color:var(--text-muted)">' +
+          item.desc +
+          "</div></div></div>",
+      )
+      .join("") +
+    "</div></div>" +
+    '<div class="section-title"><span>❌ Makanan Dihindari</span></div>' +
+    '<div class="tips-section" style="margin-bottom:16px">' +
+    '<div class="tips-list">' +
+    rekomendasiMakanan.hindari
+      .map(
+        (item) =>
+          '<div class="tip-item"><span style="font-size:16px">' +
+          item.icon +
+          "</span>" +
+          '<div><strong style="font-size:13px;color:var(--text)">' +
+          item.nama +
+          "</strong>" +
+          '<div style="font-size:11px;color:var(--text-muted)">' +
+          item.desc +
+          "</div></div></div>",
+      )
+      .join("") +
+    "</div></div>" +
+    '<div class="section-title"><span>💡 Tips Khusus</span></div>' +
+    '<div class="tips-section">' +
+    '<div class="tips-list">' +
+    rekomendasiMakanan.tips
+      .map(
+        (tip) =>
+          '<div class="tip-item"><span class="tip-dot"></span><span>' +
+          tip +
+          "</span></div>",
+      )
+      .join("") +
+    "</div></div>";
+}
+
+function buildMealScheduleCard(icon, label, time, kal, color) {
+  return (
+    '<div style="display:flex;align-items:center;gap:12px;background:var(--surface);' +
+    'border:1px solid var(--border);border-radius:14px;padding:12px 14px">' +
+    '<div style="font-size:24px;flex-shrink:0">' +
+    icon +
+    "</div>" +
+    '<div style="flex:1;min-width:0">' +
+    "<div style=\"font-family:'Syne',sans-serif;font-size:13px;font-weight:700\">" +
+    label +
+    "</div>" +
+    '<div style="font-size:11px;color:var(--text-muted)">' +
+    time +
+    "</div>" +
+    "</div>" +
+    '<div style="text-align:right;flex-shrink:0">' +
+    "<div style=\"font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:" +
+    color +
+    '">' +
+    kal +
+    "</div>" +
+    '<div style="font-size:10px;color:var(--text-muted)">kcal</div>' +
+    "</div></div>"
+  );
+}
+
+function getRekomendasiMakanan(bmiNum, goal) {
+  const base = {
+    diet: {
+      anjurkan: [
+        {
+          icon: "🥗",
+          nama: "Sayuran hijau",
+          desc: "Bayam, kangkung, brokoli — tinggi serat, rendah kalori",
+        },
+        {
+          icon: "🐟",
+          nama: "Ikan & seafood",
+          desc: "Salmon, tuna, udang — protein tinggi, lemak sehat",
+        },
+        {
+          icon: "🍗",
+          nama: "Dada ayam tanpa kulit",
+          desc: "Protein tinggi, lemak sangat rendah",
+        },
+        {
+          icon: "🥚",
+          nama: "Telur rebus",
+          desc: "Protein padat, mengenyangkan lebih lama",
+        },
+        {
+          icon: "🍎",
+          nama: "Buah segar",
+          desc: "Apel, pir, stroberi — serat tinggi, gula alami rendah",
+        },
+      ],
+      hindari: [
+        {
+          icon: "🍟",
+          nama: "Makanan gorengan",
+          desc: "Kalori sangat tinggi dari minyak berlebih",
+        },
+        {
+          icon: "🥤",
+          nama: "Minuman manis & soda",
+          desc: "Gula cair tidak mengenyangkan, langsung masuk kalori",
+        },
+        {
+          icon: "🍞",
+          nama: "Karbohidrat olahan",
+          desc: "Roti putih, nasi putih berlebih — cepat menaikkan gula darah",
+        },
+        {
+          icon: "🍰",
+          nama: "Dessert & kue manis",
+          desc: "Kalori kosong tanpa nutrisi berarti",
+        },
+      ],
+      tips: [
+        "Makan 5–6 kali porsi kecil untuk jaga metabolisme tetap aktif",
+        "Minum 2 gelas air sebelum makan untuk bantu rasa kenyang",
+        "Prioritaskan protein di setiap waktu makan agar otot terjaga",
+        "Batasi nasi putih, ganti dengan nasi merah atau quinoa",
+        "Jangan skip sarapan — ini kunci kontrol nafsu makan sepanjang hari",
+      ],
+    },
+    healthy: {
+      anjurkan: [
+        {
+          icon: "🥩",
+          nama: "Protein lean",
+          desc: "Ayam, ikan, tahu, tempe — untuk regenerasi sel",
+        },
+        {
+          icon: "🌾",
+          nama: "Karbohidrat kompleks",
+          desc: "Oat, nasi merah, ubi — energi stabil sepanjang hari",
+        },
+        {
+          icon: "🥑",
+          nama: "Lemak sehat",
+          desc: "Alpukat, minyak zaitun, kacang-kacangan",
+        },
+        {
+          icon: "🫐",
+          nama: "Buah & sayur beragam",
+          desc: "Penuhi vitamin, mineral, dan antioksidan harian",
+        },
+        {
+          icon: "🥛",
+          nama: "Susu & produk fermentasi",
+          desc: "Yogurt, kefir — untuk kesehatan usus dan tulang",
+        },
+      ],
+      hindari: [
+        {
+          icon: "🍔",
+          nama: "Fast food & junk food",
+          desc: "Tinggi sodium, lemak trans, dan kalori kosong",
+        },
+        {
+          icon: "🧂",
+          nama: "Makanan terlalu asin",
+          desc: "Risiko hipertensi dan retensi cairan",
+        },
+        {
+          icon: "🍭",
+          nama: "Gula tambahan berlebih",
+          desc: "Minuman manis, permen, sirup",
+        },
+        {
+          icon: "🥓",
+          nama: "Daging olahan",
+          desc: "Sosis, nugget, kornet — tinggi pengawet dan sodium",
+        },
+      ],
+      tips: [
+        "Ikuti pola makan 3x sehari dengan 1–2 snack sehat",
+        "Isi setengah piring dengan sayur dan buah di setiap makan",
+        "Minum air putih minimal 8 gelas per hari",
+        "Masak sendiri lebih sering agar tahu bahan yang dikonsumsi",
+        "Variasikan sumber protein agar asupan amino acid lengkap",
+      ],
+    },
+    bulking: {
+      anjurkan: [
+        {
+          icon: "🥩",
+          nama: "Daging merah tanpa lemak",
+          desc: "Sapi, kambing — tinggi protein dan zinc untuk otot",
+        },
+        {
+          icon: "🍚",
+          nama: "Nasi putih & pasta",
+          desc: "Karbohidrat padat untuk surplus kalori dan energi latihan",
+        },
+        {
+          icon: "🥜",
+          nama: "Selai kacang & kacang-kacangan",
+          desc: "Kalori padat, protein, dan lemak sehat",
+        },
+        {
+          icon: "🍳",
+          nama: "Telur utuh (dengan kuning)",
+          desc: "Protein + lemak + kalori — ideal untuk bulking",
+        },
+        {
+          icon: "🍌",
+          nama: "Pisang & buah kalori tinggi",
+          desc: "Energi cepat untuk pre/post workout",
+        },
+      ],
+      hindari: [
+        {
+          icon: "🥗",
+          nama: "Sayuran terlalu banyak tanpa kalori",
+          desc: "Bisa bikin kenyang tapi kalori tidak tercapai",
+        },
+        {
+          icon: "🍵",
+          nama: "Minuman diet/zero kalori",
+          desc: "Tidak membantu surplus kalori yang dibutuhkan",
+        },
+        {
+          icon: "🚫",
+          nama: "Skip makan",
+          desc: "Konsistensi surplus kalori sangat penting untuk bulking",
+        },
+        {
+          icon: "🍺",
+          nama: "Alkohol",
+          desc: "Menghambat sintesis protein dan recovery otot",
+        },
+      ],
+      tips: [
+        "Makan setiap 2–3 jam untuk jaga surplus kalori sepanjang hari",
+        "Konsumsi protein 30–60 menit setelah latihan untuk recovery optimal",
+        "Tambahkan healthy calorie dense food: alpukat, kacang, minyak zaitun",
+        "Jangan takut makan banyak karbohidrat — ini bahan bakar utama otot",
+        "Tidur 7–9 jam per malam — hormon pertumbuhan dilepas saat tidur",
+      ],
+    },
+  };
+
+  const result = { ...base[goal || "healthy"] };
+  if (bmiNum < 18.5) {
+    result.tips = [
+      "BMI kamu di bawah normal — prioritaskan penambahan berat badan secara sehat",
+      "Tingkatkan asupan kalori 300–500 kcal di atas kebutuhan harian",
+      "Konsumsi makanan padat nutrisi, bukan sekadar kalori kosong",
+      ...result.tips.slice(0, 2),
+    ];
+  } else if (bmiNum >= 25 && bmiNum < 30) {
+    result.tips = [
+      "BMI kamu Overweight — kurangi 300–500 kcal dari TDEE secara bertahap",
+      "Hindari crash diet — turunkan berat badan 0.5kg per minggu secara konsisten",
+      "Perbanyak aktivitas fisik ringan seperti jalan kaki 30 menit/hari",
+      ...result.tips.slice(0, 2),
+    ];
+  } else if (bmiNum >= 30) {
+    result.tips = [
+      "BMI kamu Obesitas — konsultasikan dengan dokter atau ahli gizi",
+      "Kurangi porsi makan secara bertahap, jangan drastis",
+      "Fokus pada perubahan kebiasaan jangka panjang, bukan diet instan",
+      ...result.tips.slice(0, 2),
+    ];
+  }
+
+  return result;
+}
+
+// ─── LABEL HELPERS ────────────────────────────────────────────
+function getMealLabel(m) {
+  return (
+    { sarapan: "Sarapan", siang: "Makan Siang", malam: "Makan Malam" }[m] || m
+  );
+}
+
+function getGoalLabel(g) {
+  return { diet: "Diet", healthy: "Healthy", bulking: "Bulking" }[g] || g;
 }
 
 // ─── DETAIL PAGE ──────────────────────────────────────────────
-
 function openDetail(idx) {
   if (!currentFilteredFoods || !currentFilteredFoods[idx]) {
     console.error("Food tidak ditemukan:", idx);
@@ -1282,7 +1857,6 @@ function openDetail(idx) {
   const f = currentFilteredFoods[idx];
   state.currentFood = f;
 
-  // FIX: Reset rotasi & zoom AR agar gambar makanan baru tidak mewarisi posisi sebelumnya
   arRotation = 0;
   arScale = 1;
   const arFoodImg = document.getElementById("ar-food-img");
@@ -1343,16 +1917,32 @@ function openDetail(idx) {
     healthy: "💚 Seimbang antara makronutrien untuk pola hidup sehat.",
   };
 
-  // Kesesuaian kalori dengan target makan
-  const mealPct = state.mealCalories > 0 ? Math.min(100, Math.round((f.calories / state.mealCalories) * 100)) : 0;
-  const fitColor = mealPct <= 80 ? "#00e5a0" : mealPct <= 100 ? "#ffb347" : "#ff6b6b";
-  const fitLabel = mealPct <= 80 ? "Sesuai target" : mealPct <= 100 ? "Pas di target" : "Melebihi target";
+  const mealPct =
+    state.mealCalories > 0
+      ? Math.min(100, Math.round((f.calories / state.mealCalories) * 100))
+      : 0;
+  const fitColor =
+    mealPct <= 80 ? "#00e5a0" : mealPct <= 100 ? "#ffb347" : "#ff6b6b";
+  const fitLabel =
+    mealPct <= 80
+      ? "Sesuai target"
+      : mealPct <= 100
+        ? "Pas di target"
+        : "Melebihi target";
 
-  // Saran porsi per goal
   const portionTips = {
-    diet:    { icon: "⚖️", tip: "Kurangi porsi nasi/karbo, tambah porsi sayur. Makan perlahan agar cepat kenyang." },
-    healthy: { icon: "🍱", tip: "Ikuti porsi rekomendasi. Tambahkan salad atau buah sebagai pelengkap." },
-    bulking: { icon: "💪", tip: "Tambah 1–2 porsi jika masih di bawah target kalori harian. Konsumsi dalam 2 jam setelah latihan." },
+    diet: {
+      icon: "⚖️",
+      tip: "Kurangi porsi nasi/karbo, tambah porsi sayur. Makan perlahan agar cepat kenyang.",
+    },
+    healthy: {
+      icon: "🍱",
+      tip: "Ikuti porsi rekomendasi. Tambahkan salad atau buah sebagai pelengkap.",
+    },
+    bulking: {
+      icon: "💪",
+      tip: "Tambah 1–2 porsi jika masih di bawah target kalori harian. Konsumsi dalam 2 jam setelah latihan.",
+    },
   }[state.goal];
 
   document.getElementById("detail-reason").innerHTML = `
@@ -1370,10 +1960,12 @@ function openDetail(idx) {
       <strong>Mengapa ini?</strong> ${reasons[state.goal]}
     </div>
     <div class="detail-labels-wrap">
-      ${(f.labels || []).map((l, i) => {
+      ${(f.labels || [])
+      .map((l, i) => {
         const colors = ["#00e5a0", "#00b4f5", "#ff6b6b"];
         return `<span class="detail-label-tag" style="color:${colors[i % 3]};border-color:${colors[i % 3]}30;background:${colors[i % 3]}10">${l}</span>`;
-      }).join("")}
+      })
+      .join("")}
     </div>
     <div class="detail-portion-tip">
       <span class="portion-tip-icon">${portionTips.icon}</span>
@@ -1393,26 +1985,32 @@ function openDetail(idx) {
     if (fitBar) fitBar.style.width = fitBar.dataset.fit + "%";
   }, 300);
 
-  // Reset AR state saat buka detail baru
   stopCamera();
   arActive = false;
   const arVideo = document.getElementById("ar-video");
   if (arVideo) arVideo.style.display = "none";
   const arOverlay = document.getElementById("ar-overlay");
   if (arOverlay) arOverlay.style.display = "flex";
-  // FIX: model-3d dibuat secara dinamis, selalu cek null sebelum akses
   const model3d = document.getElementById("model-3d");
   if (model3d) {
     model3d.style.display = "none";
     model3d.removeAttribute("src");
     model3d.src = "";
   }
-  document.getElementById("ar-hint").textContent = "🤚 Drag untuk putar • Scroll untuk zoom";
-  // Destroy model-viewer container
+  document.getElementById("ar-hint").textContent =
+    "🤚 Drag untuk putar • Scroll untuk zoom";
   const container = document.getElementById("model-3d-container");
   if (container) {
     container.innerHTML = "";
     container.style.display = "none";
+  }
+
+  const btnKonfirmasi = document.getElementById("btn-konfirmasi-makan");
+  if (btnKonfirmasi) {
+    btnKonfirmasi.disabled = false;
+    btnKonfirmasi.textContent = "✅ Konfirmasi Sudah Makan";
+    btnKonfirmasi.dataset.confirmed = "0";
+    btnKonfirmasi.style.background = "";
   }
 
   const btnToggle = document.getElementById("btn-ar-toggle");
@@ -1421,10 +2019,12 @@ function openDetail(idx) {
     btnToggle.style.background = "";
   }
 
-  // FIX: Cek duplikat — jangan simpan riwayat yang sama di hari yang sama
   const todayStr = new Date().toISOString().slice(0, 10);
-  const sudahAda = _riwayatCache.some(r =>
-    r.type === "food" && r.name === f.name && (r.rawTime || "").slice(0, 10) === todayStr
+  const sudahAda = _riwayatCache.some(
+    (r) =>
+      r.type === "food" &&
+      r.name === f.name &&
+      (r.rawTime || "").slice(0, 10) === todayStr,
   );
   if (!sudahAda) {
     _riwayatCacheDirty = true;
@@ -1440,8 +2040,55 @@ function openDetail(idx) {
   }
 }
 
+// ─── KONFIRMASI MAKAN ─────────────────────────────────────────
+async function konfirmasiMakan() {
+  const f = state.currentFood;
+  if (!f) return;
+
+  const btn = document.getElementById("btn-konfirmasi-makan");
+  if (btn.dataset.confirmed === "1") {
+    showToast("Makanan ini sudah ditambahkan hari ini! ✓", "success");
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = "Menyimpan...";
+
+  const mealLabel =
+    { sarapan: "Sarapan", siang: "Makan Siang", malam: "Makan Malam" }[
+    state.meal
+    ] || state.meal;
+
+  const entry = {
+    name: f.name,
+    calories: f.calories,
+    protein: f.protein,
+    fat: f.fat,
+    carbs: f.carbs,
+    img: f.img,
+    goal: state.goal,
+    meal: state.meal,
+    mealLabel,
+    targetCalories: state.targetCalories,
+    mealCalories: state.mealCalories,
+    time: fmtTime(),
+    rawTime: new Date().toISOString(),
+  };
+
+  try {
+    await fsAddFoodLog(state.currentUser, entry);
+    btn.textContent = "✅ Sudah Ditambahkan!";
+    btn.dataset.confirmed = "1";
+    btn.style.background = "linear-gradient(135deg, #00b894, #00cec9)";
+    showToast("🎉 " + f.name + " ditambahkan ke progress!", "success");
+  } catch (e) {
+    btn.disabled = false;
+    btn.textContent = "✅ Konfirmasi Sudah Makan";
+    showToast("Gagal menyimpan, coba lagi!", "error");
+  }
+}
+
 // ─── CAMERA / AR ──────────────────────────────────────────────
-// FIX: startCamera kini dipakai oleh toggleAR — tidak ada dead code
 async function startCamera() {
   const stream = await navigator.mediaDevices.getUserMedia({
     video: { facingMode: "environment" },
@@ -1469,9 +2116,7 @@ async function toggleAR() {
   const btn = document.getElementById("btn-ar-toggle");
 
   if (!arActive) {
-    // === AKTIFKAN AR ===
     try {
-      // FIX: Gunakan startCamera() — tidak duplikasi kode getUserMedia
       await startCamera();
 
       const container = document.getElementById("model-3d-container");
@@ -1479,10 +2124,8 @@ async function toggleAR() {
       const modelPath = foodModels[foodName];
 
       if (modelPath && container) {
-        // Recreate model-viewer setiap kali agar rotate/zoom selalu aktif
         container.innerHTML = "";
 
-        // Buat model-viewer
         const mv = document.createElement("model-viewer");
         mv.id = "model-3d";
         mv.setAttribute("src", modelPath);
@@ -1490,17 +2133,34 @@ async function toggleAR() {
         mv.setAttribute("auto-rotate", "");
         mv.setAttribute("camera-controls", "");
         mv.setAttribute("shadow-intensity", "1");
-        mv.style.cssText = "width:100%;height:100%;background:transparent;position:absolute;top:0;left:0;z-index:10;";
+        mv.style.cssText =
+          "width:100%;height:100%;background:transparent;position:absolute;top:0;left:0;z-index:10;";
         container.appendChild(mv);
 
-        // Buat label DILUAR model-viewer tapi di dalam container
-        // agar position:absolute bekerja dengan benar
         const f = state.currentFood;
         if (f) {
           const labelStyles = [
-            { top: "20%",  right: "10%", delay: "0.3s",  bg: "rgba(0,229,160,0.9)",  shadow: "rgba(0,229,160,0.5)"  },
-            { top: "60%",  left:  "8%",  delay: "0.8s",  bg: "rgba(0,180,245,0.9)",  shadow: "rgba(0,180,245,0.5)"  },
-            { bottom:"15%",right: "12%", delay: "1.3s",  bg: "rgba(255,107,107,0.9)",shadow: "rgba(255,107,107,0.5)"},
+            {
+              top: "20%",
+              right: "10%",
+              delay: "0.3s",
+              bg: "rgba(0,229,160,0.9)",
+              shadow: "rgba(0,229,160,0.5)",
+            },
+            {
+              top: "60%",
+              left: "8%",
+              delay: "0.8s",
+              bg: "rgba(0,180,245,0.9)",
+              shadow: "rgba(0,180,245,0.5)",
+            },
+            {
+              bottom: "15%",
+              right: "12%",
+              delay: "1.3s",
+              bg: "rgba(255,107,107,0.9)",
+              shadow: "rgba(255,107,107,0.5)",
+            },
           ];
           f.labels.forEach((label, i) => {
             if (!label) return;
@@ -1509,10 +2169,10 @@ async function toggleAR() {
             el.textContent = label;
             const s = labelStyles[i];
             el.style.cssText = [
-              s.top    ? `top:${s.top};`    : "",
+              s.top ? `top:${s.top};` : "",
               s.bottom ? `bottom:${s.bottom};` : "",
-              s.left   ? `left:${s.left};`  : "",
-              s.right  ? `right:${s.right};`: "",
+              s.left ? `left:${s.left};` : "",
+              s.right ? `right:${s.right};` : "",
               `background:${s.bg};`,
               `box-shadow:0 2px 12px ${s.shadow};`,
               `animation-delay:${s.delay};`,
@@ -1534,19 +2194,15 @@ async function toggleAR() {
       showToast("Izin kamera ditolak atau tidak tersedia", "error");
     }
   } else {
-    // === MATIKAN AR ===
     stopCamera();
-
     document.getElementById("ar-video").style.display = "none";
 
-    // Destroy model-viewer sepenuhnya
     const container = document.getElementById("model-3d-container");
     if (container) {
       container.innerHTML = "";
       container.style.display = "none";
     }
 
-    // Tampilkan kembali overlay gambar
     document.getElementById("ar-overlay").style.display = "flex";
     document.getElementById("ar-hint").textContent =
       "🤚 Drag untuk putar • Scroll untuk zoom";
@@ -1641,8 +2297,6 @@ function nowTime() {
   });
 }
 
-
-
 async function renderChatFromStorage() {
   const uid = state.currentUser;
   if (!uid) return;
@@ -1662,12 +2316,14 @@ async function renderChatFromStorage() {
     if (stored.length === 0) {
       appendMsgEl(
         "Halo! 👋 Aku **NutriBot AI**, partner kamu untuk hidup lebih sehat 🥗\n\n" +
-          "Saat ini aku masih terus dikembangkan, jadi mungkin ada jawaban yang belum akurat. Tapi tenang, kamu tetap bisa pakai ini sebagai referensi awal ya! 💡",
-        "bot", nowTime(),
+        "Saat ini aku masih terus dikembangkan, jadi mungkin ada jawaban yang belum akurat. Tapi tenang, kamu tetap bisa pakai ini sebagai referensi awal ya! 💡",
+        "bot",
+        nowTime(),
       );
       appendMsgEl(
         'Coba tanya: _"Apa manfaat protein?"_ atau _"Berapa kalori nasi goreng?"_ 🥗',
-        "bot", nowTime(),
+        "bot",
+        nowTime(),
       );
     } else {
       stored.forEach((m) => appendMsgEl(m.text, m.role, m.time));
@@ -1681,7 +2337,6 @@ function appendMsgEl(text, role, time) {
   const msgsEl = document.getElementById("chat-messages");
   const wrap = document.createElement("div");
   wrap.className = "chat-msg " + role;
-  // Convert basic markdown
   const html = text
     .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
     .replace(/_(.*?)_/g, "<em>$1</em>");
@@ -1707,8 +2362,6 @@ function removeTypingIndicator() {
   if (t) t.remove();
 }
 
-// ─── KONFIGURASI BACKEND ──────────────────────────────────────
-// Ganti URL ini jika backend kamu berjalan di port/host berbeda
 const BACKEND_URL = "https://smart-meal-production.up.railway.app";
 
 async function sendChat() {
@@ -1722,14 +2375,18 @@ async function sendChat() {
 
   const userTime = nowTime();
   appendMsgEl(text, "user", userTime);
-  const userEntry = { role: "user", text, time: userTime, rawTime: new Date().toISOString() };
+  const userEntry = {
+    role: "user",
+    text,
+    time: userTime,
+    rawTime: new Date().toISOString(),
+  };
   chatMessages.push(userEntry);
   fsSaveChat(state.currentUser, userEntry);
 
   isBotTyping = true;
   appendTypingIndicator();
 
-  // FIX: System prompt NutriBot — sebelumnya kosong, sekarang terarah
   const systemPrompt = `Kamu adalah NutriBot, asisten nutrisi cerdas dari aplikasi SmartMeal berbasis AI.
 Tugas kamu: membantu pengguna dengan pertanyaan seputar makanan, kalori, protein, lemak, karbohidrat, diet, bulking, dan gaya hidup sehat.
 Bahasa: selalu gunakan Bahasa Indonesia yang ramah, santai, dan mudah dipahami.
@@ -1737,23 +2394,19 @@ Format: gunakan poin-poin pendek jika menjawab daftar. Jawaban maksimal 3-4 kali
 Batasan: jangan berikan saran medis spesifik untuk kondisi penyakit — arahkan ke dokter atau ahli gizi. Jika pertanyaan di luar topik nutrisi dan kesehatan, tolak dengan sopan dan arahkan kembali.
 Persona: antusias, supportif, dan berpengetahuan luas soal gizi.`;
 
-  // FIX: Filter pesan error dari konteks — jangan kirim ke API agar tidak membingungkan AI
-  const apiMessages = chatMessages.slice(-10)
-    .filter(m => !m._isError)
+  const apiMessages = chatMessages
+    .slice(-10)
+    .filter((m) => !m._isError)
     .map((m) => ({
       role: m.role === "bot" ? "assistant" : "user",
       content: m.text,
     }));
 
   try {
-    // Panggil backend proxy — API key aman di server, tidak terekspos ke browser
     const res = await fetch(`${BACKEND_URL}/chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        messages: apiMessages,
-        systemPrompt: systemPrompt,
-      }),
+      body: JSON.stringify({ messages: apiMessages, systemPrompt }),
     });
 
     if (!res.ok) {
@@ -1767,19 +2420,34 @@ Persona: antusias, supportif, dan berpengetahuan luas soal gizi.`;
     removeTypingIndicator();
     const botTime = nowTime();
     appendMsgEl(reply, "bot", botTime);
-    const botEntry = { role: "bot", text: reply, time: botTime, rawTime: new Date().toISOString() };
+    const botEntry = {
+      role: "bot",
+      text: reply,
+      time: botTime,
+      rawTime: new Date().toISOString(),
+    };
     chatMessages.push(botEntry);
     fsSaveChat(state.currentUser, botEntry);
   } catch (e) {
     removeTypingIndicator();
     const errTime = nowTime();
-    let errMsg = "Maaf, koneksi AI bermasalah saat ini. Pastikan server backend sudah berjalan dan coba lagi! 🔄";
-    // Tampilkan pesan lebih spesifik jika server tidak bisa dihubungi
-    if (e.message.includes("Failed to fetch") || e.message.includes("NetworkError")) {
-      errMsg = "Tidak bisa terhubung ke server. Pastikan `node server.js` sudah berjalan di terminal! 🖥️";
+    let errMsg =
+      "Maaf, koneksi AI bermasalah saat ini. Pastikan server backend sudah berjalan dan coba lagi! 🔄";
+    if (
+      e.message.includes("Failed to fetch") ||
+      e.message.includes("NetworkError")
+    ) {
+      errMsg =
+        "Tidak bisa terhubung ke server. Pastikan `node server.js` sudah berjalan di terminal! 🖥️";
     }
     appendMsgEl(errMsg, "bot", errTime);
-    const errEntry = { role: "bot", text: errMsg, time: errTime, rawTime: new Date().toISOString(), _isError: true };
+    const errEntry = {
+      role: "bot",
+      text: errMsg,
+      time: errTime,
+      rawTime: new Date().toISOString(),
+      _isError: true,
+    };
     chatMessages.push(errEntry);
     fsSaveChat(state.currentUser, errEntry);
   }
@@ -1797,9 +2465,6 @@ function sendChip(btn) {
 async function initChatForUser(uid) {
   chatMessages = await fsGetChat(uid);
   chatInitialized = false;
-  // FIX: Tidak langsung render di sini — biarkan switchTab("chat") yang trigger
-  // renderChatFromStorage() saat user membuka tab Chat.
-  // Ini mencegah race condition & double render.
 }
 
 async function clearChat() {
@@ -1812,9 +2477,349 @@ async function clearChat() {
   renderChatFromStorage();
 }
 
-// ─── APP INIT ─────────────────────────────────────────────────
+// ─── PROGRESS SECTION ─────────────────────────────────────────
+let _progressTimeFilter = "30";
+let _progressGoalFilter = "all";
 
-// Expose semua fungsi ke global (wajib karena pakai type="module")
+function calcStreakFiltered(entries) {
+  if (!entries.length) return 0;
+  const dates = [
+    ...new Set(entries.map((e) => new Date(e.rawTime).toDateString())),
+  ]
+    .map((d) => new Date(d))
+    .sort((a, b) => b - a);
+  let streak = 0;
+  let check = new Date();
+  check.setHours(0, 0, 0, 0);
+  for (const d of dates) {
+    const dc = new Date(d);
+    dc.setHours(0, 0, 0, 0);
+    if (dc.getTime() === check.getTime()) {
+      streak++;
+      check.setDate(check.getDate() - 1);
+    } else break;
+  }
+  return streak;
+}
+
+function calcKonsistensiFiltered(entries, days) {
+  if (!entries.length) return 0;
+  if (days === "today") {
+    const todayHasEntry = entries.some(
+      (e) => new Date(e.rawTime).toDateString() === new Date().toDateString(),
+    );
+    return todayHasEntry ? 100 : 0;
+  }
+  if (days === "all") {
+    const sorted = [...entries].sort(
+      (a, b) => new Date(a.rawTime) - new Date(b.rawTime),
+    );
+    const firstDate = new Date(sorted[0].rawTime);
+    firstDate.setHours(0, 0, 0, 0);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const totalDays = Math.max(
+      1,
+      Math.round((today - firstDate) / (1000 * 60 * 60 * 24)) + 1,
+    );
+    const uniqueDays = new Set(
+      entries.map((e) => new Date(e.rawTime).toDateString()),
+    ).size;
+    return Math.round((uniqueDays / totalDays) * 100);
+  }
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - parseInt(days));
+  const recent = entries.filter((e) => new Date(e.rawTime) >= cutoff);
+  const uniqueDays = new Set(
+    recent.map((e) => new Date(e.rawTime).toDateString()),
+  ).size;
+  return Math.round((uniqueDays / parseInt(days)) * 100);
+}
+
+function getFilteredFoodLog(foodLog, timeFilter, goalFilter) {
+  let filtered = [...foodLog];
+  if (goalFilter !== "all") {
+    filtered = filtered.filter(
+      (e) => (e.goal || "").toLowerCase() === goalFilter,
+    );
+  }
+  if (timeFilter === "today") {
+    const todayStr = new Date().toDateString();
+    filtered = filtered.filter(
+      (e) => new Date(e.rawTime).toDateString() === todayStr,
+    );
+  } else if (timeFilter !== "all") {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - parseInt(timeFilter));
+    cutoff.setHours(0, 0, 0, 0);
+    filtered = filtered.filter((e) => new Date(e.rawTime) >= cutoff);
+  }
+  return filtered;
+}
+
+function getTimeFilterLabel(timeFilter) {
+  return {
+    today: "hari ini",
+    7: "7 hari terakhir",
+    30: "30 hari terakhir",
+    all: "semua waktu",
+  }[timeFilter];
+}
+
+function getGoalFilterLabel(goalFilter) {
+  return {
+    all: "semua goal",
+    diet: "diet 🥗",
+    healthy: "healthy 💚",
+    bulking: "bulking 💪",
+  }[goalFilter];
+}
+
+async function renderProgressInProfile() {
+  const container = document.getElementById("progress-content-profile");
+  if (!container) return;
+  container.innerHTML =
+    '<div style="text-align:center;padding:20px;color:var(--text-muted)">Memuat... ⏳</div>';
+
+  const foodLog = await fsGetFoodLog(state.currentUser);
+  _renderProgressUI(foodLog);
+}
+
+function _renderProgressUI(foodLog) {
+  const container = document.getElementById("progress-content-profile");
+  if (!container) return;
+
+  const filtered = getFilteredFoodLog(
+    foodLog,
+    _progressTimeFilter,
+    _progressGoalFilter,
+  );
+
+  const todayLog = filtered.filter(
+    (e) => new Date(e.rawTime).toDateString() === new Date().toDateString(),
+  );
+  const todayKcal = todayLog.reduce((s, e) => s + (e.calories || 0), 0);
+  const todayTarget = state.targetCalories || 0;
+
+  const totalMakanan = filtered.length;
+  const konsistensi = calcKonsistensiFiltered(filtered, _progressTimeFilter);
+  const streak = calcStreakFiltered(filtered);
+
+  const pct = todayTarget
+    ? Math.min(100, Math.round((todayKcal / todayTarget) * 100))
+    : 0;
+  const over = todayKcal > todayTarget && todayTarget > 0;
+  const barColor = over ? "#ff6b6b" : pct >= 80 ? "#ffb347" : "#00e5a0";
+
+  const timeLabel = getTimeFilterLabel(_progressTimeFilter);
+  const goalLabel = getGoalFilterLabel(_progressGoalFilter);
+  const contextLabel =
+    _progressGoalFilter === "all" ? timeLabel : goalLabel + " · " + timeLabel;
+
+  const goalOptions = [
+    { val: "all", label: "Semua" },
+    { val: "diet", label: "🥗 Diet" },
+    { val: "healthy", label: "💚 Healthy" },
+    { val: "bulking", label: "💪 Bulking" },
+  ];
+  const timeOptions = [
+    { val: "today", label: "Hari Ini" },
+    { val: "7", label: "7 Hari" },
+    { val: "30", label: "30 Hari" },
+    { val: "all", label: "Semua" },
+  ];
+
+  const INITIAL_SHOW = 10;
+  const showAll = container._showAllFoods === true;
+  const itemsToShow = showAll ? filtered : filtered.slice(0, INITIAL_SHOW);
+  const hasMore = filtered.length > INITIAL_SHOW;
+
+  const foodListHTML =
+    filtered.length > 0
+      ? '<div class="section-title" style="margin-top:8px"><span>Daftar Makanan ' +
+      (_progressTimeFilter === "today"
+        ? "Hari Ini"
+        : _progressTimeFilter === "all"
+          ? "Semua Waktu"
+          : _progressTimeFilter + " Hari Terakhir") +
+      (_progressGoalFilter !== "all"
+        ? " · " +
+        _progressGoalFilter.charAt(0).toUpperCase() +
+        _progressGoalFilter.slice(1)
+        : "") +
+      "</span></div>" +
+      '<div style="display:flex;flex-direction:column;gap:8px">' +
+      itemsToShow
+        .map(
+          (e) =>
+            '<div style="display:flex;align-items:center;gap:10px;background:var(--surface);' +
+            'border:1px solid var(--border);border-radius:12px;padding:10px 12px">' +
+            '<img src="' +
+            e.img +
+            '" style="width:36px;height:36px;border-radius:8px;object-fit:cover;flex-shrink:0" onerror="this.style.display=\'none\'">' +
+            '<div style="flex:1;min-width:0">' +
+            '<div style="font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' +
+            e.name +
+            "</div>" +
+            '<div style="font-size:11px;color:var(--text-muted)">' +
+            (e.mealLabel || e.meal || "-") +
+            " · 🔥 " +
+            e.calories +
+            " kcal" +
+            ' · <span style="color:var(--accent);font-size:10px">' +
+            (e.goal || "") +
+            "</span>" +
+            "</div>" +
+            '<div style="font-size:10px;color:var(--text-muted);margin-top:2px">' +
+            new Date(e.rawTime).toLocaleDateString("id-ID", {
+              day: "numeric",
+              month: "short",
+              year: "numeric",
+            }) +
+            "</div>" +
+            "</div>" +
+            '<div style="font-size:12px;font-weight:700;color:var(--accent);flex-shrink:0">+' +
+            e.calories +
+            "</div>" +
+            "</div>",
+        )
+        .join("") +
+      "</div>" +
+      (hasMore
+        ? '<button onclick="toggleShowAllFoods()" style="width:100%;margin-top:10px;padding:10px;background:var(--surface);border:1px solid var(--border);border-radius:12px;color:var(--accent);font-family:\'Syne\',sans-serif;font-size:12px;font-weight:700;cursor:pointer;">' +
+        (showAll
+          ? "⬆️ Sembunyikan · tampilkan " + INITIAL_SHOW + " saja"
+          : "📋 Tampilkan semua " + filtered.length + " makanan") +
+        "</button>"
+        : "")
+      : '<div class="progress-empty">Tidak ada data untuk filter ini.<br>Coba ubah filter waktu atau goal! 🔍</div>';
+
+  container.innerHTML =
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">' +
+    "<div style=\"font-family:'Syne',sans-serif;font-size:13px;font-weight:700\">📊 Progress Goalmu</div>" +
+    '<button onclick="clearProgressData()" style="display:flex;align-items:center;gap:6px;padding:7px 12px;background:rgba(255,107,107,0.08);border:1px solid rgba(255,107,107,0.3);border-radius:50px;color:#ff6b6b;font-family:\'Syne\',sans-serif;font-size:11px;font-weight:700;cursor:pointer;">🗑️ Hapus Semua</button>' +
+    "</div>" +
+    '<div class="progress-filter-bar">' +
+    '<div class="progress-filter-group">' +
+    '<div class="progress-filter-group-label">⏱ Waktu</div>' +
+    '<div class="progress-filter-pills">' +
+    timeOptions
+      .map(
+        (o) =>
+          '<button class="progress-filter-pill' +
+          (_progressTimeFilter === o.val ? " active" : "") +
+          '" ' +
+          "onclick=\"setProgressFilterNew('" +
+          o.val +
+          "', 'time')\">" +
+          o.label +
+          "</button>",
+      )
+      .join("") +
+    "</div>" +
+    "</div>" +
+    '<div class="progress-filter-group">' +
+    '<div class="progress-filter-group-label">🎯 Goal</div>' +
+    '<div class="progress-filter-pills">' +
+    goalOptions
+      .map(
+        (o) =>
+          '<button class="progress-filter-pill' +
+          (_progressGoalFilter === o.val ? " active" : "") +
+          '" ' +
+          "onclick=\"setProgressFilterNew('" +
+          o.val +
+          "', 'goal')\">" +
+          o.label +
+          "</button>",
+      )
+      .join("") +
+    "</div>" +
+    "</div>" +
+    "</div>" +
+    '<div class="progress-context-label">📊 Menampilkan data: <strong>' +
+    contextLabel +
+    "</strong></div>" +
+    '<div class="progress-summary-grid" style="margin-bottom:16px">' +
+    '<div class="progress-summary-card highlight">' +
+    '<div class="progress-summary-val">' +
+    totalMakanan +
+    "</div>" +
+    '<div class="progress-summary-label">Total Makanan</div>' +
+    '<div class="progress-summary-ctx">' +
+    contextLabel +
+    "</div>" +
+    "</div>" +
+    '<div class="progress-summary-card">' +
+    '<div class="progress-summary-val">' +
+    konsistensi +
+    "%</div>" +
+    '<div class="progress-summary-label">Konsistensi</div>' +
+    '<div class="progress-summary-ctx">' +
+    contextLabel +
+    "</div>" +
+    "</div>" +
+    '<div class="progress-summary-card">' +
+    '<div class="progress-summary-val">' +
+    streak +
+    " 🔥</div>" +
+    '<div class="progress-summary-label">Streak</div>' +
+    '<div class="progress-summary-ctx">berturut-turut</div>' +
+    "</div>" +
+    "</div>" +
+    '<div class="progress-chart-card" style="margin-bottom:16px">' +
+    '<div class="progress-chart-header">' +
+    '<div class="progress-chart-title">🍽️ Progress Hari Ini</div>' +
+    '<span class="badge">' +
+    pct +
+    "% tercapai</span>" +
+    "</div>" +
+    '<div style="text-align:center;margin-bottom:12px">' +
+    "<div style=\"font-family:'Syne',sans-serif;font-size:36px;font-weight:800;color:" +
+    barColor +
+    '">' +
+    todayKcal +
+    "</div>" +
+    '<div style="font-size:12px;color:var(--text-muted)">dari <strong style="color:var(--text)">' +
+    (todayTarget || "?") +
+    " kcal</strong> target harian</div>" +
+    "</div>" +
+    '<div style="background:rgba(255,255,255,0.05);border-radius:10px;height:8px;overflow:hidden;margin-bottom:6px">' +
+    '<div style="width:' +
+    pct +
+    "%;height:100%;background:" +
+    barColor +
+    ';border-radius:10px;transition:width 1s ease"></div>' +
+    "</div>" +
+    (todayTarget === 0
+      ? '<div style="font-size:11px;color:var(--text-muted);text-align:center">Buka tab Analisis untuk set target kalori</div>'
+      : "") +
+    "</div>" +
+    foodListHTML;
+
+  container._foodLog = foodLog;
+}
+
+function setProgressFilterNew(val, type) {
+  if (type === "time") _progressTimeFilter = val;
+  if (type === "goal") _progressGoalFilter = val;
+
+  const container = document.getElementById("progress-content-profile");
+  if (container && container._foodLog) {
+    _renderProgressUI(container._foodLog);
+  }
+}
+
+function toggleShowAllFoods() {
+  const container = document.getElementById("progress-content-profile");
+  if (!container) return;
+  container._showAllFoods = !container._showAllFoods;
+  if (container._foodLog) {
+    _renderProgressUI(container._foodLog);
+  }
+}
+
+// ─── APP INIT ─────────────────────────────────────────────────
 window.showAuth = showAuth;
 window.togglePw = togglePw;
 window.doLogin = doLogin;
@@ -1827,10 +2832,6 @@ window.selectGoal = selectGoal;
 window.selectMeal = selectMeal;
 window.goToStep2 = goToStep2;
 window.backToStep1 = backToStep1;
-window.goToInput = goToInput;
-window.selectGender = selectGender;
-window.selectActivity = selectActivity;
-window.confirmInput = confirmInput;
 window.openDetail = openDetail;
 window.toggleAR = toggleAR;
 window.startCamera = startCamera;
@@ -1847,13 +2848,20 @@ window.clearAllRiwayat = clearAllRiwayat;
 window.sendChat = sendChat;
 window.sendChip = sendChip;
 window.clearChat = clearChat;
+window.konfirmasiMakan = konfirmasiMakan;
+window.goToResult = goToResult;
+window.anSelectGender = anSelectGender;
+window.anSelectActivity = anSelectActivity;
+window.runAnalisis = runAnalisis;
+window.showAnalisisForm = showAnalisisForm;
+window.renderProgressInProfile = renderProgressInProfile;
+window.toggleShowAllFoods = toggleShowAllFoods;
+window.setProgressFilterNew = setProgressFilterNew;
 
-// FIX: Debounced version untuk input pencarian riwayat — cegah rerender tiap keystroke
 const filterRiwayatDebounced = debounce(filterRiwayat, 250);
 window.filterRiwayatDebounced = filterRiwayatDebounced;
 
-// Beritahu HTML bahwa module sudah siap
-document.dispatchEvent(new Event('moduleready'));
+document.dispatchEvent(new Event("moduleready"));
 
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("auth-wrapper").style.display = "block";
