@@ -32,12 +32,13 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBc_HbaBPOuYdo26gKpmT-LUFd6LtV2d7c",
-  authDomain: "smart-meal-1c301.firebaseapp.com",
-  projectId: "smart-meal-1c301",
-  storageBucket: "smart-meal-1c301.firebasestorage.app",
-  messagingSenderId: "602665872132",
-  appId: "1:602665872132:web:0b64ac1367d6586be33e51",
+  apiKey: "AIzaSyBhlxjnGNxSrCntljvPRpCsHblkPmoRWN8",
+  authDomain: "smart-meal-7b230.firebaseapp.com",
+  projectId: "smart-meal-7b230",
+  storageBucket: "smart-meal-7b230.firebasestorage.app",
+  messagingSenderId: "1092059886876",
+  appId: "1:1092059886876:web:ee455f889b9310ed51f6d9",
+  measurementId: "G-HBFJHKTLVH"
 };
 
 const firebaseApp = initializeApp(firebaseConfig);
@@ -454,6 +455,8 @@ let chatInitialized = false;
 
 let currentFilteredFoods = [];
 
+let _chartVisible = false;
+
 // ─── UTILITIES ────────────────────────────────────────────────
 function debounce(fn, delay) {
   let timer;
@@ -666,17 +669,10 @@ async function doRegister() {
   }
 
   const regBtn = document.querySelector("#register-screen .btn-primary");
-  if (regBtn) {
-    regBtn.textContent = "Mendaftar...";
-    regBtn.disabled = true;
-  }
+  if (regBtn) { regBtn.textContent = "Mendaftar..."; regBtn.disabled = true; }
 
   try {
-    const q = query(
-      collection(db, "users"),
-      where("username", "==", username),
-      limit(1),
-    );
+    const q = query(collection(db, "users"), where("username", "==", username), limit(1));
     const snap = await getDocs(q);
     if (!snap.empty) {
       showToast("Username sudah dipakai!", "error");
@@ -684,25 +680,22 @@ async function doRegister() {
     }
 
     const cred = await createUserWithEmailAndPassword(auth, email, pw);
-    const joined = new Date().toLocaleDateString("id-ID", {
-      month: "long",
-      year: "numeric",
-    });
+    const joined = new Date().toLocaleDateString("id-ID", { month: "long", year: "numeric" });
     await fsSetUser(cred.user.uid, { username, email, avatar: "👤", joined });
+
     showToast("Akun berhasil dibuat! 🎉", "success");
+    setTimeout(() => {
+      window.location.href = "panduan.html?onboarding=1";
+    }, 1000);
+
   } catch (e) {
     const msg =
-      e.code === "auth/email-already-in-use"
-        ? "Email sudah terdaftar!"
-        : e.code === "auth/weak-password"
-          ? "Password terlalu lemah!"
-          : "Registrasi gagal: " + e.message;
+      e.code === "auth/email-already-in-use" ? "Email sudah terdaftar!" :
+      e.code === "auth/weak-password" ? "Password terlalu lemah!" :
+      "Registrasi gagal: " + e.message;
     showToast(msg, "error");
   } finally {
-    if (regBtn) {
-      regBtn.textContent = "Daftar";
-      regBtn.disabled = false;
-    }
+    if (regBtn) { regBtn.textContent = "Daftar"; regBtn.disabled = false; }
   }
 }
 
@@ -2034,6 +2027,7 @@ function openDetail(idx) {
       calories: f.calories,
       protein: f.protein,
       img: f.img,
+      goal: state.goal,
       time: fmtTime(),
       rawTime: new Date().toISOString(),
     });
@@ -2481,10 +2475,11 @@ async function clearChat() {
 let _progressTimeFilter = "30";
 let _progressGoalFilter = "all";
 
-function calcStreakFiltered(entries) {
-  if (!entries.length) return 0;
+// Ganti fungsi calcStreakFiltered dengan ini:
+function calcStreak(allEntries) {
+  if (!allEntries.length) return 0;
   const dates = [
-    ...new Set(entries.map((e) => new Date(e.rawTime).toDateString())),
+    ...new Set(allEntries.map((e) => new Date(e.rawTime).toDateString())),
   ]
     .map((d) => new Date(d))
     .sort((a, b) => b - a);
@@ -2589,32 +2584,22 @@ function _renderProgressUI(foodLog) {
   const container = document.getElementById("progress-content-profile");
   if (!container) return;
 
-  const filtered = getFilteredFoodLog(
-    foodLog,
-    _progressTimeFilter,
-    _progressGoalFilter,
-  );
+  const filtered = getFilteredFoodLog(foodLog, _progressTimeFilter, _progressGoalFilter);
 
-  const todayLog = filtered.filter(
-    (e) => new Date(e.rawTime).toDateString() === new Date().toDateString(),
+  // Progress hari ini tidak terpengaruh filter
+  const todayLog = foodLog.filter(
+    (e) => new Date(e.rawTime).toDateString() === new Date().toDateString()
   );
   const todayKcal = todayLog.reduce((s, e) => s + (e.calories || 0), 0);
   const todayTarget = state.targetCalories || 0;
 
   const totalMakanan = filtered.length;
   const konsistensi = calcKonsistensiFiltered(filtered, _progressTimeFilter);
-  const streak = calcStreakFiltered(filtered);
+  const streak = calcStreak(foodLog);
 
-  const pct = todayTarget
-    ? Math.min(100, Math.round((todayKcal / todayTarget) * 100))
-    : 0;
+  const pct = todayTarget ? Math.min(100, Math.round((todayKcal / todayTarget) * 100)) : 0;
   const over = todayKcal > todayTarget && todayTarget > 0;
   const barColor = over ? "#ff6b6b" : pct >= 80 ? "#ffb347" : "#00e5a0";
-
-  const timeLabel = getTimeFilterLabel(_progressTimeFilter);
-  const goalLabel = getGoalFilterLabel(_progressGoalFilter);
-  const contextLabel =
-    _progressGoalFilter === "all" ? timeLabel : goalLabel + " · " + timeLabel;
 
   const goalOptions = [
     { val: "all", label: "Semua" },
@@ -2634,170 +2619,120 @@ function _renderProgressUI(foodLog) {
   const itemsToShow = showAll ? filtered : filtered.slice(0, INITIAL_SHOW);
   const hasMore = filtered.length > INITIAL_SHOW;
 
-  const foodListHTML =
-    filtered.length > 0
-      ? '<div class="section-title" style="margin-top:8px"><span>Daftar Makanan ' +
-      (_progressTimeFilter === "today"
-        ? "Hari Ini"
-        : _progressTimeFilter === "all"
-          ? "Semua Waktu"
-          : _progressTimeFilter + " Hari Terakhir") +
-      (_progressGoalFilter !== "all"
-        ? " · " +
-        _progressGoalFilter.charAt(0).toUpperCase() +
-        _progressGoalFilter.slice(1)
-        : "") +
-      "</span></div>" +
-      '<div style="display:flex;flex-direction:column;gap:8px">' +
-      itemsToShow
-        .map(
-          (e) =>
-            '<div style="display:flex;align-items:center;gap:10px;background:var(--surface);' +
-            'border:1px solid var(--border);border-radius:12px;padding:10px 12px">' +
-            '<img src="' +
-            e.img +
-            '" style="width:36px;height:36px;border-radius:8px;object-fit:cover;flex-shrink:0" onerror="this.style.display=\'none\'">' +
-            '<div style="flex:1;min-width:0">' +
-            '<div style="font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' +
-            e.name +
-            "</div>" +
-            '<div style="font-size:11px;color:var(--text-muted)">' +
-            (e.mealLabel || e.meal || "-") +
-            " · 🔥 " +
-            e.calories +
-            " kcal" +
-            ' · <span style="color:var(--accent);font-size:10px">' +
-            (e.goal || "") +
-            "</span>" +
-            "</div>" +
-            '<div style="font-size:10px;color:var(--text-muted);margin-top:2px">' +
-            new Date(e.rawTime).toLocaleDateString("id-ID", {
-              day: "numeric",
-              month: "short",
-              year: "numeric",
-            }) +
-            "</div>" +
-            "</div>" +
-            '<div style="font-size:12px;font-weight:700;color:var(--accent);flex-shrink:0">+' +
-            e.calories +
-            "</div>" +
-            "</div>",
-        )
-        .join("") +
+  // Label filter aktif yang ringkas
+  const timeLabel = getTimeFilterLabel(_progressTimeFilter);
+  const goalLabel = getGoalFilterLabel(_progressGoalFilter);
+  const activeFilterLabel = _progressGoalFilter === "all"
+    ? timeLabel
+    : goalLabel + " · " + timeLabel;
+
+  const foodListHTML = filtered.length > 0
+    ? `<div class="prog-section-label">Makanan · ${activeFilterLabel}</div>
+       <div style="display:flex;flex-direction:column;gap:8px">` +
+      itemsToShow.map((e) =>
+        `<div class="prog-food-item">
+          <img src="${e.img}" class="prog-food-img" onerror="this.style.display='none'">
+          <div class="prog-food-info">
+            <div class="prog-food-name">${e.name}</div>
+            <div class="prog-food-meta">${e.mealLabel || e.meal || "-"} · <span style="color:var(--accent)">${e.goal || ""}</span></div>
+            <div class="prog-food-date">${new Date(e.rawTime).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}</div>
+          </div>
+          <div class="prog-food-kcal">+${e.calories}</div>
+        </div>`
+      ).join("") +
       "</div>" +
       (hasMore
-        ? '<button onclick="toggleShowAllFoods()" style="width:100%;margin-top:10px;padding:10px;background:var(--surface);border:1px solid var(--border);border-radius:12px;color:var(--accent);font-family:\'Syne\',sans-serif;font-size:12px;font-weight:700;cursor:pointer;">' +
-        (showAll
-          ? "⬆️ Sembunyikan · tampilkan " + INITIAL_SHOW + " saja"
-          : "📋 Tampilkan semua " + filtered.length + " makanan") +
-        "</button>"
+        ? `<button onclick="toggleShowAllFoods()" class="prog-show-more-btn">
+            ${showAll ? "⬆️ Sembunyikan" : "📋 Tampilkan semua " + filtered.length + " makanan"}
+           </button>`
         : "")
-      : '<div class="progress-empty">Tidak ada data untuk filter ini.<br>Coba ubah filter waktu atau goal! 🔍</div>';
+    : `<div class="progress-empty">Belum ada data untuk filter ini.<br>Coba ubah filter atau konfirmasi makanan dulu! 🔍</div>`;
 
   container.innerHTML =
-    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">' +
-    "<div style=\"font-family:'Syne',sans-serif;font-size:13px;font-weight:700\">📊 Progress Goalmu</div>" +
-    '<button onclick="clearProgressData()" style="display:flex;align-items:center;gap:6px;padding:7px 12px;background:rgba(255,107,107,0.08);border:1px solid rgba(255,107,107,0.3);border-radius:50px;color:#ff6b6b;font-family:\'Syne\',sans-serif;font-size:11px;font-weight:700;cursor:pointer;">🗑️ Hapus Semua</button>' +
-    "</div>" +
-    '<div class="progress-filter-bar">' +
-    '<div class="progress-filter-group">' +
-    '<div class="progress-filter-group-label">⏱ Waktu</div>' +
-    '<div class="progress-filter-pills">' +
-    timeOptions
-      .map(
-        (o) =>
-          '<button class="progress-filter-pill' +
-          (_progressTimeFilter === o.val ? " active" : "") +
-          '" ' +
-          "onclick=\"setProgressFilterNew('" +
-          o.val +
-          "', 'time')\">" +
-          o.label +
-          "</button>",
-      )
-      .join("") +
-    "</div>" +
-    "</div>" +
-    '<div class="progress-filter-group">' +
-    '<div class="progress-filter-group-label">🎯 Goal</div>' +
-    '<div class="progress-filter-pills">' +
-    goalOptions
-      .map(
-        (o) =>
-          '<button class="progress-filter-pill' +
-          (_progressGoalFilter === o.val ? " active" : "") +
-          '" ' +
-          "onclick=\"setProgressFilterNew('" +
-          o.val +
-          "', 'goal')\">" +
-          o.label +
-          "</button>",
-      )
-      .join("") +
-    "</div>" +
-    "</div>" +
-    "</div>" +
-    '<div class="progress-context-label">📊 Menampilkan data: <strong>' +
-    contextLabel +
-    "</strong></div>" +
-    '<div class="progress-summary-grid" style="margin-bottom:16px">' +
-    '<div class="progress-summary-card highlight">' +
-    '<div class="progress-summary-val">' +
-    totalMakanan +
-    "</div>" +
-    '<div class="progress-summary-label">Total Makanan</div>' +
-    '<div class="progress-summary-ctx">' +
-    contextLabel +
-    "</div>" +
-    "</div>" +
-    '<div class="progress-summary-card">' +
-    '<div class="progress-summary-val">' +
-    konsistensi +
-    "%</div>" +
-    '<div class="progress-summary-label">Konsistensi</div>' +
-    '<div class="progress-summary-ctx">' +
-    contextLabel +
-    "</div>" +
-    "</div>" +
-    '<div class="progress-summary-card">' +
-    '<div class="progress-summary-val">' +
-    streak +
-    " 🔥</div>" +
-    '<div class="progress-summary-label">Streak</div>' +
-    '<div class="progress-summary-ctx">berturut-turut</div>' +
-    "</div>" +
-    "</div>" +
-    '<div class="progress-chart-card" style="margin-bottom:16px">' +
-    '<div class="progress-chart-header">' +
-    '<div class="progress-chart-title">🍽️ Progress Hari Ini</div>' +
-    '<span class="badge">' +
-    pct +
-    "% tercapai</span>" +
-    "</div>" +
-    '<div style="text-align:center;margin-bottom:12px">' +
-    "<div style=\"font-family:'Syne',sans-serif;font-size:36px;font-weight:800;color:" +
-    barColor +
-    '">' +
-    todayKcal +
-    "</div>" +
-    '<div style="font-size:12px;color:var(--text-muted)">dari <strong style="color:var(--text)">' +
-    (todayTarget || "?") +
-    " kcal</strong> target harian</div>" +
-    "</div>" +
-    '<div style="background:rgba(255,255,255,0.05);border-radius:10px;height:8px;overflow:hidden;margin-bottom:6px">' +
-    '<div style="width:' +
-    pct +
-    "%;height:100%;background:" +
-    barColor +
-    ';border-radius:10px;transition:width 1s ease"></div>' +
-    "</div>" +
-    (todayTarget === 0
-      ? '<div style="font-size:11px;color:var(--text-muted);text-align:center">Buka tab Analisis untuk set target kalori</div>'
-      : "") +
-    "</div>" +
+    // ── Header ──
+    `<div class="prog-header">
+      <span style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700">📊 Progress</span>
+      <button onclick="clearProgressData()" class="prog-danger-btn">🗑️ Hapus</button>
+    </div>` +
+
+    // ── Filter Bar — ringkas ──
+    `<div class="prog-filter-bar">
+      <div class="prog-filter-row">
+        <span class="prog-filter-label">⏱</span>` +
+        timeOptions.map((o) =>
+          `<button class="prog-pill${_progressTimeFilter === o.val ? " active" : ""}"
+            onclick="setProgressFilterNew('${o.val}','time')">${o.label}</button>`
+        ).join("") +
+      `</div>
+      <div class="prog-filter-row">
+        <span class="prog-filter-label">🎯</span>` +
+        goalOptions.map((o) =>
+          `<button class="prog-pill${_progressGoalFilter === o.val ? " active" : ""}"
+            onclick="setProgressFilterNew('${o.val}','goal')">${o.label}</button>`
+        ).join("") +
+      `</div>
+    </div>` +
+
+    // ── Summary Cards ──
+    `<div class="prog-cards">
+      <div class="prog-card highlight">
+        <div class="prog-card-val">${totalMakanan}</div>
+        <div class="prog-card-label">Makanan</div>
+      </div>
+      <div class="prog-card">
+        <div class="prog-card-val">${konsistensi}%</div>
+        <div class="prog-card-label">Konsistensi</div>
+      </div>
+      <div class="prog-card">
+        <div class="prog-card-val">${streak} 🔥</div>
+        <div class="prog-card-label">Streak</div>
+      </div>
+    </div>` +
+
+    // ── Progress Hari Ini ──
+    `<div class="prog-today-card">
+      <div class="prog-today-top">
+        <span class="prog-today-title">🍽️ Hari Ini</span>
+        <span class="prog-today-badge" style="color:${barColor}">${pct}% tercapai</span>
+      </div>
+      <div class="prog-today-kcal" style="color:${barColor}">${todayKcal.toLocaleString()}</div>
+      <div class="prog-today-sub">dari <strong>${todayTarget || "?"} kcal</strong> target harian</div>
+      <div class="prog-today-bar-track">
+        <div class="prog-today-bar-fill" style="width:${pct}%;background:${barColor}"></div>
+      </div>
+      ${todayTarget === 0
+        ? `<div class="prog-today-hint">Isi data di tab Analisis untuk set target kalori</div>`
+        : `<div class="prog-today-hint">📌 Tidak terpengaruh filter waktu/goal</div>`}
+    </div>` +
+
+    // ── Toggle Grafik ──
+    `<button id="btn-toggle-chart" class="prog-chart-toggle-btn${_chartVisible ? " active" : ""}"
+      onclick="toggleProgressChart()">
+      ${_chartVisible ? "📉 Sembunyikan Grafik" : "📈 Lihat Tren Kalori"}
+    </button>` +
+
+    // ── Chart Wrap (hidden by default) ──
+    `<div id="progress-chart-wrap" style="display:${_chartVisible ? "block" : "none"}">
+      <div class="prog-chart-card">
+        <div class="prog-chart-info">
+          Tren kalori · ${activeFilterLabel} · <em>Tap titik untuk detail</em>
+        </div>
+        <div id="progress-line-chart" style="position:relative;width:100%;margin-top:4px"></div>
+      </div>
+    </div>` +
+
+    // ── Daftar Makanan ──
     foodListHTML;
 
   container._foodLog = foodLog;
+
+  // Render chart jika sedang terbuka
+  if (_chartVisible) {
+    requestAnimationFrame(() => {
+      const chartData = buildChartData(foodLog, _progressTimeFilter, _progressGoalFilter);
+      renderLineChart("progress-line-chart", chartData, todayTarget || null);
+    });
+  }
 }
 
 function setProgressFilterNew(val, type) {
@@ -2816,6 +2751,301 @@ function toggleShowAllFoods() {
   container._showAllFoods = !container._showAllFoods;
   if (container._foodLog) {
     _renderProgressUI(container._foodLog);
+  }
+}
+
+function buildChartData(foodLog, timeFilter, goalFilter) {
+  const now = new Date();
+  let days = [];
+
+  if (timeFilter === "today") {
+    days = [new Date(now)];
+  } else if (timeFilter === "7") {
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(now.getDate() - i);
+      days.push(d);
+    }
+  } else if (timeFilter === "30") {
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(now.getDate() - i);
+      days.push(d);
+    }
+  } else {
+    // "all" — ambil dari tanggal pertama entry
+    const sorted = [...foodLog].sort(
+      (a, b) => new Date(a.rawTime) - new Date(b.rawTime)
+    );
+    if (!sorted.length) return { labels: [], values: [], hasData: false };
+    const first = new Date(sorted[0].rawTime);
+    first.setHours(0, 0, 0, 0);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    let cur = new Date(first);
+    while (cur <= today) {
+      days.push(new Date(cur));
+      cur.setDate(cur.getDate() + 1);
+    }
+    // Batasi maksimal 60 hari agar chart tidak terlalu padat
+    if (days.length > 60) days = days.slice(days.length - 60);
+  }
+
+  const labels = days.map((d) => {
+    if (timeFilter === "today") return "Hari Ini";
+    if (timeFilter === "7") {
+      const isToday = d.toDateString() === now.toDateString();
+      return isToday
+        ? "Hari Ini"
+        : d.toLocaleDateString("id-ID", { weekday: "short", day: "numeric" });
+    }
+    return d.toLocaleDateString("id-ID", { day: "numeric", month: "short" });
+  });
+
+  const values = days.map((d) => {
+    const dateStr = d.toDateString();
+    return foodLog
+      .filter((e) => {
+        const match = new Date(e.rawTime).toDateString() === dateStr;
+        if (!match) return false;
+        if (goalFilter !== "all") {
+          return (e.goal || "").toLowerCase() === goalFilter;
+        }
+        return true;
+      })
+      .reduce((s, e) => s + (e.calories || 0), 0);
+  });
+
+  return { labels, values, hasData: values.some((v) => v > 0) };
+}
+
+function renderLineChart(containerId, chartData, targetCalories) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  const { labels, values, hasData } = chartData;
+
+  if (!hasData || labels.length === 0) {
+    container.innerHTML =
+      '<div class="chart-no-data">📭 Belum ada data untuk ditampilkan.<br>Mulai konfirmasi makanan agar grafik muncul!</div>';
+    return;
+  }
+
+  // Jika hanya 1 titik (today), duplikasi agar ada garis
+  const chartLabels = labels.length === 1 ? [labels[0], labels[0]] : labels;
+  const chartValues = values.length === 1 ? [values[0], values[0]] : values;
+
+  const W = container.clientWidth || 320;
+  const H = 180;
+  const PAD = { top: 20, right: 16, bottom: 40, left: 48 };
+  const plotW = W - PAD.left - PAD.right;
+  const plotH = H - PAD.top - PAD.bottom;
+
+  const maxVal = Math.max(...chartValues, targetCalories || 0, 100);
+  const yMax = Math.ceil((maxVal * 1.2) / 500) * 500;
+
+  const xStep = plotW / (chartLabels.length - 1 || 1);
+  const yScale = (v) => plotH - (v / yMax) * plotH;
+
+  // Points
+  const pts = chartValues.map((v, i) => ({
+    x: PAD.left + i * xStep,
+    y: PAD.top + yScale(v),
+    v,
+    label: chartLabels[i],
+  }));
+
+  // Area path
+  const linePath = pts.map((p, i) => `${i === 0 ? "M" : "L"}${p.x},${p.y}`).join(" ");
+  const areaPath =
+    `M${pts[0].x},${PAD.top + plotH} ` +
+    pts.map((p) => `L${p.x},${p.y}`).join(" ") +
+    ` L${pts[pts.length - 1].x},${PAD.top + plotH} Z`;
+
+  // Y gridlines
+  const yTicks = 4;
+  const gridLines = Array.from({ length: yTicks + 1 }, (_, i) => {
+    const val = Math.round((yMax / yTicks) * i);
+    const y = PAD.top + yScale(val);
+    return { val, y };
+  });
+
+  // Target line Y
+  const targetY = targetCalories
+    ? PAD.top + yScale(Math.min(targetCalories, yMax))
+    : null;
+
+  // X labels — hanya tampilkan sebagian agar tidak overlap
+  const maxLabels = Math.floor(plotW / 44);
+  const labelStep = Math.max(1, Math.ceil(chartLabels.length / maxLabels));
+
+  // Tentukan warna titik
+  const dotColors = chartValues.map((v) => {
+    if (!targetCalories) return "#00e5a0";
+    const ratio = v / targetCalories;
+    if (ratio === 0) return "rgba(255,255,255,0.15)";
+    if (ratio <= 0.85) return "#00b4f5";
+    if (ratio <= 1.05) return "#00e5a0";
+    return "#ff6b6b";
+  });
+
+  const svgId = "chart-svg-" + containerId;
+
+  container.innerHTML = `
+    <svg id="${svgId}" width="100%" height="${H}" viewBox="0 0 ${W} ${H}" 
+         xmlns="http://www.w3.org/2000/svg" style="overflow:visible">
+      <defs>
+        <linearGradient id="areaGrad-${containerId}" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#00e5a0" stop-opacity="0.25"/>
+          <stop offset="100%" stop-color="#00e5a0" stop-opacity="0.01"/>
+        </linearGradient>
+        <filter id="glow-${containerId}">
+          <feGaussianBlur stdDeviation="2.5" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+
+      <!-- Grid lines -->
+      ${gridLines
+        .map(
+          ({ val, y }) => `
+        <line x1="${PAD.left}" y1="${y}" x2="${PAD.left + plotW}" y2="${y}"
+              stroke="rgba(255,255,255,0.05)" stroke-width="1" stroke-dasharray="4,4"/>
+        <text x="${PAD.left - 6}" y="${y + 4}" 
+              font-size="9" fill="rgba(255,255,255,0.3)" 
+              text-anchor="end" font-family="DM Sans,sans-serif">
+          ${val >= 1000 ? (val / 1000).toFixed(1) + "k" : val}
+        </text>
+      `
+        )
+        .join("")}
+
+      <!-- Target line -->
+      ${
+        targetY !== null
+          ? `
+        <line x1="${PAD.left}" y1="${targetY}" x2="${PAD.left + plotW}" y2="${targetY}"
+              stroke="#ffb347" stroke-width="1.5" stroke-dasharray="6,4" opacity="0.7"/>
+        <text x="${PAD.left + plotW + 4}" y="${targetY + 4}"
+              font-size="9" fill="#ffb347" font-family="DM Sans,sans-serif" opacity="0.85">
+          Target
+        </text>
+      `
+          : ""
+      }
+
+      <!-- Area fill -->
+      <path d="${areaPath}" fill="url(#areaGrad-${containerId})"/>
+
+      <!-- Line -->
+      <path d="${linePath}" fill="none" stroke="#00e5a0" stroke-width="2"
+            stroke-linejoin="round" stroke-linecap="round"
+            filter="url(#glow-${containerId})"/>
+
+      <!-- Dots + tooltip trigger -->
+      ${pts
+        .map(
+          (p, i) => `
+        <circle cx="${p.x}" cy="${p.y}" r="4" 
+                fill="${dotColors[i]}" stroke="var(--bg,#080c14)" stroke-width="2"
+                class="chart-dot"
+                data-label="${p.label}" data-val="${p.v}"
+                style="cursor:pointer"/>
+        <circle cx="${p.x}" cy="${p.y}" r="14" fill="transparent"
+                class="chart-dot-hit"
+                data-label="${p.label}" data-val="${p.v}" data-idx="${i}"
+                style="cursor:pointer"/>
+      `
+        )
+        .join("")}
+
+      <!-- X Labels -->
+      ${pts
+        .map((p, i) => {
+          if (i % labelStep !== 0 && i !== pts.length - 1) return "";
+          return `
+          <text x="${p.x}" y="${PAD.top + plotH + 18}"
+                font-size="9" fill="rgba(255,255,255,0.35)"
+                text-anchor="middle" font-family="DM Sans,sans-serif">
+            ${chartLabels[i]}
+          </text>
+        `;
+        })
+        .join("")}
+    </svg>
+    <div class="chart-tooltip" id="tooltip-${containerId}" style="display:none"></div>
+  `;
+
+  // Tooltip interaktif
+  const svg = document.getElementById(svgId);
+  const tooltip = document.getElementById("tooltip-" + containerId);
+  if (!svg || !tooltip) return;
+
+  svg.querySelectorAll(".chart-dot-hit").forEach((el) => {
+    el.addEventListener("mouseenter", (e) => showTooltipChart(e, tooltip, targetCalories));
+    el.addEventListener("mouseleave", () => (tooltip.style.display = "none"));
+    el.addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      showTooltipChart(e.touches[0], tooltip, targetCalories);
+    }, { passive: false });
+  });
+}
+
+function showTooltipChart(e, tooltip, targetCalories) {
+  const label = e.target.dataset.label;
+  const val = parseInt(e.target.dataset.val || 0);
+  const pct = targetCalories ? Math.round((val / targetCalories) * 100) : null;
+  const color =
+    val === 0
+      ? "rgba(255,255,255,0.3)"
+      : !targetCalories
+      ? "#00e5a0"
+      : pct <= 85
+      ? "#00b4f5"
+      : pct <= 105
+      ? "#00e5a0"
+      : "#ff6b6b";
+
+  tooltip.style.display = "block";
+  tooltip.innerHTML = `
+    <div style="font-family:'Syne',sans-serif;font-size:11px;font-weight:700;margin-bottom:2px">${label}</div>
+    <div style="font-size:13px;font-weight:800;color:${color}">${val.toLocaleString()} kcal</div>
+    ${pct !== null ? `<div style="font-size:10px;color:rgba(255,255,255,0.5);margin-top:2px">${pct}% dari target</div>` : ""}
+  `;
+
+  const rect = tooltip.parentElement.getBoundingClientRect();
+  const ex = (e.clientX || e.pageX) - rect.left;
+  const ey = (e.clientY || e.pageY) - rect.top;
+  const tw = 130;
+  tooltip.style.left = Math.min(ex - tw / 2, rect.width - tw - 4) + "px";
+  tooltip.style.top = Math.max(0, ey - 70) + "px";
+}
+
+function toggleProgressChart() {
+  _chartVisible = !_chartVisible;
+  const chartWrap = document.getElementById("progress-chart-wrap");
+  const btn = document.getElementById("btn-toggle-chart");
+  if (!chartWrap || !btn) return;
+
+  if (_chartVisible) {
+    chartWrap.style.display = "block";
+    chartWrap.classList.add("chart-animate-in");
+    btn.textContent = "📉 Sembunyikan Grafik";
+    btn.classList.add("active");
+
+    // Render chart setelah elemen visible
+    requestAnimationFrame(() => {
+      const container = document.getElementById("progress-content-profile");
+      const foodLog = container?._foodLog || [];
+      const todayTarget = state.targetCalories || 0;
+      const chartData = buildChartData(foodLog, _progressTimeFilter, _progressGoalFilter);
+      renderLineChart("progress-line-chart", chartData, todayTarget || null);
+    });
+  } else {
+    chartWrap.style.display = "none";
+    chartWrap.classList.remove("chart-animate-in");
+    btn.textContent = "📈 Lihat Tren Kalori";
+    btn.classList.remove("active");
   }
 }
 
@@ -2857,6 +3087,7 @@ window.showAnalisisForm = showAnalisisForm;
 window.renderProgressInProfile = renderProgressInProfile;
 window.toggleShowAllFoods = toggleShowAllFoods;
 window.setProgressFilterNew = setProgressFilterNew;
+window.toggleProgressChart = toggleProgressChart;
 
 const filterRiwayatDebounced = debounce(filterRiwayat, 250);
 window.filterRiwayatDebounced = filterRiwayatDebounced;

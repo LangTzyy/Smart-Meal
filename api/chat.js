@@ -1,28 +1,20 @@
-// server.js — Backend Proxy untuk Groq API
-require("dotenv").config();
-const express = require("express");
-const cors = require("cors");
 const Groq = require("groq-sdk");
-
-const app = express();
-const PORT = process.env.PORT || 3000; // ← pakai PORT dari Railway
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
-// CORS config lengkap
-app.use(cors({
-  origin: "*",
-  methods: ["GET", "POST", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-}));
+export default async function handler(req, res) {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-// Handle preflight OPTIONS request
-app.options("*", cors());
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
 
-app.use(express.json());
-app.use(express.static("public"));
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
 
-app.post("/chat", async (req, res) => {
   try {
     const { messages } = req.body;
 
@@ -48,14 +40,9 @@ ATURAN FORMAT: jangan gunakan #, *, atau markdown. Judul huruf kapital. Gunakan 
 
     res.json({ content: response.choices[0].message.content });
   } catch (error) {
-    console.error("Error:", error.message);
     res.status(500).json({
       error: "Terjadi kesalahan saat menghubungi AI",
       detail: error.message,
     });
   }
-});
-
-app.listen(PORT, () => {
-  console.log(`Server berjalan di port ${PORT}`);
-});
+}
