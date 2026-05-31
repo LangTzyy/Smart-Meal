@@ -6,7 +6,6 @@
   <title>Panduan SmartMeal</title>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
   <style>
-    /* ── VARIABLES ── */
     :root {
       --bg: #080c14;
       --surface: rgba(255,255,255,0.05);
@@ -17,14 +16,10 @@
       --accent3: #ff6b6b;
       --text: #f0f4ff;
       --text-muted: rgba(240,244,255,0.5);
-      --glow: rgba(0,229,160,0.15);
-      --nav-height: 66px;
     }
 
     *,*::before,*::after { margin:0; padding:0; box-sizing:border-box; }
-
     html { overflow-x:hidden; scroll-behavior:smooth; }
-
     body {
       min-height:100vh;
       background: var(--bg);
@@ -32,7 +27,6 @@
       font-family: "DM Sans", sans-serif;
       overflow-x: hidden;
     }
-
     body::before {
       content:"";
       position:fixed;
@@ -44,291 +38,16 @@
       z-index:0;
     }
 
-    /* ── ANIMATIONS ── */
     @keyframes fadeIn {
       from { opacity:0; transform:translateY(14px); }
       to   { opacity:1; transform:translateY(0); }
-    }
-    @keyframes slideRight {
-      from { opacity:0; transform:translateX(30px); }
-      to   { opacity:1; transform:translateX(0); }
-    }
-    @keyframes slideLeft {
-      from { opacity:0; transform:translateX(-30px); }
-      to   { opacity:1; transform:translateX(0); }
-    }
-    @keyframes pulse {
-      0%,100% { opacity:1; transform:scale(1); }
-      50%     { opacity:.4; transform:scale(.8); }
-    }
-    @keyframes orbFloat {
-      0%,100% { transform:translate(0,0); }
-      50%     { transform:translate(20px,-20px); }
-    }
-    @keyframes shimmer {
-      0%   { background-position:-200% center; }
-      100% { background-position:200% center; }
     }
     @keyframes iconBounce {
       0%,100% { transform:translateY(0); }
       50%     { transform:translateY(-6px); }
     }
 
-    /* ══════════════════════════════════════
-       ONBOARDING OVERLAY
-    ══════════════════════════════════════ */
-    #onboarding-overlay {
-      position:fixed;
-      inset:0;
-      z-index:9999;
-      background: var(--bg);
-      display:flex;
-      flex-direction:column;
-      overflow:hidden;
-    }
-
-    #onboarding-overlay.hidden { display:none; }
-
-    .ob-bg-orb {
-      position:absolute;
-      border-radius:50%;
-      pointer-events:none;
-      z-index:0;
-    }
-    .ob-orb1 {
-      width:clamp(200px,60vw,400px);
-      height:clamp(200px,60vw,400px);
-      background:rgba(0,229,160,0.1);
-      top:-100px; left:-80px;
-      animation:orbFloat 8s ease-in-out infinite;
-    }
-    .ob-orb2 {
-      width:clamp(150px,50vw,320px);
-      height:clamp(150px,50vw,320px);
-      background:rgba(0,180,245,0.08);
-      bottom:-60px; right:-60px;
-      animation:orbFloat 11s ease-in-out infinite reverse;
-    }
-
-    /* Progress bar atas */
-    .ob-progress-bar {
-      position:relative;
-      z-index:2;
-      display:flex;
-      gap:6px;
-      padding:20px 24px 0;
-    }
-    .ob-prog-dot {
-      flex:1;
-      height:3px;
-      border-radius:2px;
-      background:var(--border);
-      transition:background 0.4s ease;
-      overflow:hidden;
-    }
-    .ob-prog-dot.active {
-      background:linear-gradient(90deg, var(--accent), var(--accent2));
-    }
-    .ob-prog-dot.done { background:var(--accent); }
-
-    /* Slide container */
-    /* BARU */
-    .ob-slides {
-      flex:1;
-      position:relative;
-      z-index:2;
-      overflow-y:auto;
-      overflow-x:hidden;
-      -webkit-overflow-scrolling:touch;
-    }
-
-    /* BARU */
-.ob-slide {
-  display:none;
-  flex-direction:column;
-  align-items:center;
-  padding:32px 28px 24px;
-  opacity:0;
-  pointer-events:none;
-  transition:opacity 0.35s ease;
-  text-align:center;
-  min-height:100%;
-}
-.ob-slide.active {
-  display:flex;
-  opacity:1;
-  pointer-events:all;
-}
-.ob-slide.exit-left { display:none; }
-
-    .ob-slide-icon {
-      font-size:clamp(56px,15vw,80px);
-      margin-bottom:24px;
-      animation:iconBounce 3s ease-in-out infinite;
-      filter:drop-shadow(0 0 24px rgba(0,229,160,0.4));
-      line-height:1;
-    }
-
-    .ob-badge {
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-      background:rgba(0,229,160,0.1);
-      border:1px solid rgba(0,229,160,0.25);
-      border-radius:50px;
-      padding:5px 14px;
-      font-size:11px;
-      color:var(--accent);
-      font-weight:700;
-      margin-bottom:16px;
-      letter-spacing:0.5px;
-      text-transform:uppercase;
-    }
-
-    .ob-title {
-      font-family:"Syne",sans-serif;
-      font-size:clamp(22px,6vw,30px);
-      font-weight:800;
-      line-height:1.2;
-      margin-bottom:14px;
-      letter-spacing:-0.5px;
-    }
-
-    .ob-title .grad {
-      background:linear-gradient(135deg, var(--accent), var(--accent2));
-      -webkit-background-clip:text;
-      -webkit-text-fill-color:transparent;
-      background-clip:text;
-    }
-
-    .ob-desc {
-      font-size:14px;
-      color:var(--text-muted);
-      line-height:1.7;
-      max-width:340px;
-      margin:0 auto;
-    }
-
-    /* Feature list di slide */
-    .ob-features {
-      margin-top:20px;
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-      width:100%;
-      max-width:340px;
-    }
-    .ob-feature-item {
-      display:flex;
-      align-items:center;
-      gap:12px;
-      background:var(--surface);
-      border:1px solid var(--border);
-      border-radius:14px;
-      padding:12px 14px;
-      text-align:left;
-      animation:fadeIn 0.4s ease forwards;
-    }
-    .ob-feature-item:nth-child(1) { animation-delay:0.1s; }
-    .ob-feature-item:nth-child(2) { animation-delay:0.2s; }
-    .ob-feature-item:nth-child(3) { animation-delay:0.3s; }
-    .ob-feature-item:nth-child(4) { animation-delay:0.4s; }
-
-    .ob-feature-icon {
-      font-size:20px;
-      flex-shrink:0;
-      width:36px;
-      height:36px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      background:rgba(0,229,160,0.08);
-      border-radius:10px;
-    }
-    .ob-feature-text { flex:1; min-width:0; }
-    .ob-feature-title {
-      font-family:"Syne",sans-serif;
-      font-size:13px;
-      font-weight:700;
-      margin-bottom:2px;
-    }
-    .ob-feature-desc {
-      font-size:11px;
-      color:var(--text-muted);
-      line-height:1.4;
-    }
-
-    /* Bottom nav onboarding */
-    .ob-bottom {
-      position:relative;
-      z-index:2;
-      padding:20px 24px;
-      padding-bottom:max(20px, env(safe-area-inset-bottom));
-    }
-
-    .ob-btn-row {
-      display:flex;
-      gap:10px;
-      align-items:center;
-    }
-
-    .ob-btn-skip {
-      background:none;
-      border:1px solid var(--border);
-      border-radius:50px;
-      padding:12px 20px;
-      color:var(--text-muted);
-      font-family:"Syne",sans-serif;
-      font-size:13px;
-      font-weight:700;
-      cursor:pointer;
-      transition:all 0.3s ease;
-      white-space:nowrap;
-    }
-    .ob-btn-skip:hover { border-color:var(--accent); color:var(--accent); }
-
-    .ob-btn-next {
-      flex:1;
-      background:linear-gradient(135deg, var(--accent), var(--accent2));
-      border:none;
-      border-radius:50px;
-      padding:13px 24px;
-      color:#000;
-      font-family:"Syne",sans-serif;
-      font-size:14px;
-      font-weight:800;
-      cursor:pointer;
-      transition:all 0.3s ease;
-      box-shadow:0 4px 24px rgba(0,229,160,0.3);
-      letter-spacing:0.3px;
-    }
-    .ob-btn-next:hover {
-      transform:translateY(-2px);
-      box-shadow:0 8px 32px rgba(0,229,160,0.45);
-    }
-
-    .ob-step-counter {
-      text-align:center;
-      font-size:11px;
-      color:var(--text-muted);
-      margin-bottom:14px;
-      font-weight:600;
-      letter-spacing:0.5px;
-    }
-
-    /* ══════════════════════════════════════
-       PANDUAN PAGE (standalone)
-    ══════════════════════════════════════ */
-    #panduan-page {
-      min-height:100vh;
-      display:flex;
-      flex-direction:column;
-      position:relative;
-      z-index:1;
-      animation:fadeIn 0.4s ease forwards;
-    }
-
-    /* Topbar */
+    /* TOPBAR */
     .pd-topbar {
       display:flex;
       align-items:center;
@@ -368,16 +87,19 @@
     }
     .pd-back-btn:hover { background:rgba(0,229,160,0.08); border-color:var(--accent); }
 
-    /* Content */
+    /* CONTENT */
     .pd-content {
       flex:1;
       padding:24px 18px 40px;
       max-width:560px;
       margin:0 auto;
       width:100%;
+      position:relative;
+      z-index:1;
+      animation:fadeIn 0.4s ease forwards;
     }
 
-    /* Hero */
+    /* HERO */
     .pd-hero {
       text-align:center;
       padding:8px 0 32px;
@@ -410,7 +132,7 @@
       background-clip:text;
     }
 
-    /* Section label */
+    /* SECTION LABEL */
     .pd-section-label {
       font-family:"Syne",sans-serif;
       font-size:11px;
@@ -430,7 +152,7 @@
       background:var(--border);
     }
 
-    /* Feature cards */
+    /* FEATURE CARDS */
     .pd-feature-section { margin-bottom:28px; }
 
     .pd-feature-card {
@@ -476,7 +198,6 @@
     .pd-card-icon.green  { background:rgba(0,229,160,0.1); }
     .pd-card-icon.blue   { background:rgba(0,180,245,0.1); }
     .pd-card-icon.orange { background:rgba(255,179,71,0.1); }
-    .pd-card-icon.red    { background:rgba(255,107,107,0.1); }
     .pd-card-icon.purple { background:rgba(162,89,255,0.1); }
 
     .pd-card-text { flex:1; min-width:0; }
@@ -509,17 +230,9 @@
     }
     .pd-feature-card.expanded .pd-card-body { display:block; }
 
-    /* Steps list */
-    .pd-steps {
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-    }
-    .pd-step {
-      display:flex;
-      gap:12px;
-      align-items:flex-start;
-    }
+    /* STEPS */
+    .pd-steps { display:flex; flex-direction:column; gap:10px; }
+    .pd-step { display:flex; gap:12px; align-items:flex-start; }
     .pd-step-num {
       width:24px;
       height:24px;
@@ -548,7 +261,7 @@
       line-height:1.5;
     }
 
-    /* Tips box */
+    /* TIP BOX */
     .pd-tip-box {
       display:flex;
       gap:10px;
@@ -563,13 +276,8 @@
     .pd-tip-text { font-size:12px; color:var(--text-muted); line-height:1.5; }
     .pd-tip-text strong { color:var(--accent); }
 
-    /* Tag chips */
-    .pd-tags {
-      display:flex;
-      flex-wrap:wrap;
-      gap:6px;
-      margin-top:12px;
-    }
+    /* TAGS */
+    .pd-tags { display:flex; flex-wrap:wrap; gap:6px; margin-top:12px; }
     .pd-tag {
       font-size:11px;
       font-weight:600;
@@ -614,16 +322,15 @@
     .pd-faq-item.expanded .pd-faq-chevron { transform:rotate(90deg); color:var(--accent); }
     .pd-faq-a {
       display:none;
-      padding:0 16px 14px;
+      padding:12px 16px 14px;
       font-size:13px;
       color:var(--text-muted);
       line-height:1.6;
       border-top:1px solid var(--border);
-      padding-top:12px;
     }
     .pd-faq-item.expanded .pd-faq-a { display:block; }
 
-    /* CTA bottom */
+    /* CTA */
     .pd-cta {
       background:linear-gradient(135deg, rgba(0,229,160,0.08), rgba(0,180,245,0.06));
       border:1px solid rgba(0,229,160,0.2);
@@ -659,250 +366,36 @@
     }
     .pd-cta-btn:hover { transform:translateY(-2px); box-shadow:0 8px 28px rgba(0,229,160,0.45); }
 
-    /* Scrollbar */
+    /* SCROLLBAR */
     ::-webkit-scrollbar { width:4px; }
     ::-webkit-scrollbar-track { background:transparent; }
     ::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
 
     @media (min-width:768px) {
       .pd-content { padding:32px 28px 48px; }
-      .ob-slide { padding:40px 48px; }
     }
   </style>
 </head>
 <body>
 
-<!-- ══════════════════════════════════════════
-     ONBOARDING OVERLAY
-     Tampil via JS: SmartMeal.showOnboarding()
-══════════════════════════════════════════ -->
-<div id="onboarding-overlay" class="hidden">
-  <div class="ob-bg-orb ob-orb1"></div>
-  <div class="ob-bg-orb ob-orb2"></div>
-
-  <!-- Progress bar -->
-  <div class="ob-progress-bar" id="ob-progress-bar"></div>
-
-  <!-- Slides -->
-  <div class="ob-slides" id="ob-slides">
-
-    <!-- Slide 0: Selamat Datang -->
-    <div class="ob-slide active" data-slide="0">
-      <div class="ob-slide-icon">🥗</div>
-      <div class="ob-badge">
-        <span style="width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 2s infinite"></span>
-        SmartMeal
-      </div>
-      <h2 class="ob-title">Selamat datang di<br><span class="grad">SmartMeal!</span></h2>
-      <p class="ob-desc">Asisten nutrisi pintar berbasis AI yang membantu kamu makan lebih sehat, sesuai tujuan dan kondisi tubuhmu.</p>
-      <div class="ob-features" style="margin-top:24px">
-        <div class="ob-feature-item">
-          <div class="ob-feature-icon">🎯</div>
-          <div class="ob-feature-text">
-            <div class="ob-feature-title">Personal & Akurat</div>
-            <div class="ob-feature-desc">Rekomendasi disesuaikan dengan berat, tinggi, usia, dan tujuanmu</div>
-          </div>
-        </div>
-        <div class="ob-feature-item">
-          <div class="ob-feature-icon">📊</div>
-          <div class="ob-feature-text">
-            <div class="ob-feature-title">Tracking Mudah</div>
-            <div class="ob-feature-desc">Catat makanan dan pantau progress kalori harianmu dengan mudah</div>
-          </div>
-        </div>
-        <div class="ob-feature-item">
-          <div class="ob-feature-icon">🤖</div>
-          <div class="ob-feature-text">
-            <div class="ob-feature-title">AI Chatbot Nutrisi</div>
-            <div class="ob-feature-desc">Tanya apa saja soal makanan dan gizi langsung ke NutriBot AI</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Slide 1: Pilih Goal -->
-    <div class="ob-slide" data-slide="1">
-      <div class="ob-slide-icon">🎯</div>
-      <div class="ob-badge">Langkah 1</div>
-      <h2 class="ob-title">Tentukan <span class="grad">Tujuanmu</span></h2>
-      <p class="ob-desc">SmartMeal punya tiga mode nutrisi. Pilih yang sesuai dengan targetmu saat ini.</p>
-      <div class="ob-features" style="margin-top:24px">
-        <div class="ob-feature-item">
-          <div class="ob-feature-icon">🥗</div>
-          <div class="ob-feature-text">
-            <div class="ob-feature-title">Diet — Kurangi berat badan</div>
-            <div class="ob-feature-desc">Defisit kalori ~400 kcal dari TDEE. Fokus makanan rendah kalori & tinggi serat.</div>
-          </div>
-        </div>
-        <div class="ob-feature-item">
-          <div class="ob-feature-icon">💚</div>
-          <div class="ob-feature-text">
-            <div class="ob-feature-title">Healthy — Jaga kesehatan</div>
-            <div class="ob-feature-desc">Kalori seimbang sesuai TDEE. Pola makan bergizi dan bervariasi.</div>
-          </div>
-        </div>
-        <div class="ob-feature-item">
-          <div class="ob-feature-icon">💪</div>
-          <div class="ob-feature-text">
-            <div class="ob-feature-title">Bulking — Tambah massa otot</div>
-            <div class="ob-feature-desc">Surplus kalori +450 kcal dari TDEE. Tinggi protein untuk pertumbuhan otot.</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Slide 2: Analisis Tubuh -->
-    <div class="ob-slide" data-slide="2">
-      <div class="ob-slide-icon">🔬</div>
-      <div class="ob-badge">Langkah 2</div>
-      <h2 class="ob-title">Analisis <span class="grad">Tubuhmu</span></h2>
-      <p class="ob-desc">Isi data tubuh di tab Analisis agar SmartMeal bisa menghitung kebutuhan kalori yang tepat untukmu.</p>
-      <div class="ob-features" style="margin-top:24px">
-        <div class="ob-feature-item">
-          <div class="ob-feature-icon">⚙️</div>
-          <div class="ob-feature-text">
-            <div class="ob-feature-title">BMR — Kalori istirahat</div>
-            <div class="ob-feature-desc">Jumlah kalori yang dibakar tubuhmu saat tidak beraktivitas sama sekali</div>
-          </div>
-        </div>
-        <div class="ob-feature-item">
-          <div class="ob-feature-icon">🔥</div>
-          <div class="ob-feature-text">
-            <div class="ob-feature-title">TDEE — Total pengeluaran energi</div>
-            <div class="ob-feature-desc">BMR dikalikan faktor aktivitas harian. Ini acuan kalorimu per hari.</div>
-          </div>
-        </div>
-        <div class="ob-feature-item">
-          <div class="ob-feature-icon">🎯</div>
-          <div class="ob-feature-text">
-            <div class="ob-feature-title">Target Kalori Harian</div>
-            <div class="ob-feature-desc">Disesuaikan otomatis berdasarkan goal yang kamu pilih di tab Home</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Slide 3: Tracking & Progress -->
-    <div class="ob-slide" data-slide="3">
-      <div class="ob-slide-icon">📊</div>
-      <div class="ob-badge">Langkah 3</div>
-      <h2 class="ob-title">Track <span class="grad">Progress</span>mu</h2>
-      <p class="ob-desc">Setiap kali kamu melihat detail makanan dan mengkonfirmasi sudah makan, data otomatis masuk ke Progress.</p>
-      <div class="ob-features" style="margin-top:24px">
-        <div class="ob-feature-item">
-          <div class="ob-feature-icon">✅</div>
-          <div class="ob-feature-text">
-            <div class="ob-feature-title">Konfirmasi Makan</div>
-            <div class="ob-feature-desc">Tap "Konfirmasi Sudah Makan" di halaman detail makanan untuk mencatat ke progress</div>
-          </div>
-        </div>
-        <div class="ob-feature-item">
-          <div class="ob-feature-icon">📈</div>
-          <div class="ob-feature-text">
-            <div class="ob-feature-title">Tren Kalori</div>
-            <div class="ob-feature-desc">Lihat grafik kalori harianmu di tab Progress, filter berdasarkan waktu & goal</div>
-          </div>
-        </div>
-        <div class="ob-feature-item">
-          <div class="ob-feature-icon">🔥</div>
-          <div class="ob-feature-text">
-            <div class="ob-feature-title">Streak Harian</div>
-            <div class="ob-feature-desc">Pertahankan streak dengan konsisten mencatat makanan setiap hari</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Slide 4: Fitur Lain -->
-    <div class="ob-slide" data-slide="4">
-      <div class="ob-slide-icon">✨</div>
-      <div class="ob-badge">Hampir Selesai</div>
-      <h2 class="ob-title">Fitur <span class="grad">Lainnya</span></h2>
-      <p class="ob-desc">SmartMeal juga punya fitur tambahan yang membuatnya lebih seru dan informatif.</p>
-      <div class="ob-features" style="margin-top:24px">
-        <div class="ob-feature-item">
-          <div class="ob-feature-icon">📷</div>
-          <div class="ob-feature-text">
-            <div class="ob-feature-title">AR Mode</div>
-            <div class="ob-feature-desc">Aktifkan kamera untuk melihat model 3D makanan dengan label nutrisi di detail makanan</div>
-          </div>
-        </div>
-        <div class="ob-feature-item">
-          <div class="ob-feature-icon">🤖</div>
-          <div class="ob-feature-text">
-            <div class="ob-feature-title">NutriBot AI</div>
-            <div class="ob-feature-desc">Tanya apa saja soal nutrisi, kalori, dan gaya hidup sehat ke chatbot AI kami</div>
-          </div>
-        </div>
-        <div class="ob-feature-item">
-          <div class="ob-feature-icon">📋</div>
-          <div class="ob-feature-text">
-            <div class="ob-feature-title">Log & Riwayat</div>
-            <div class="ob-feature-desc">Lihat semua makanan yang pernah kamu buka dan konfirmasi di tab Profile</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Slide 5: Mulai -->
-    <div class="ob-slide" data-slide="5">
-      <div class="ob-slide-icon">🚀</div>
-      <div class="ob-badge" style="background:rgba(0,229,160,0.15);border-color:rgba(0,229,160,0.4)">Siap Memulai!</div>
-      <h2 class="ob-title">Yuk, mulai<br>perjalananmu <span class="grad">sekarang!</span></h2>
-      <p class="ob-desc" style="margin-bottom:20px">Pertama-tama, isi data tubuhmu di tab <strong style="color:var(--accent)">Analisis</strong> agar rekomendasi lebih akurat. Kamu juga bisa baca panduan kapan saja di menu Profile.</p>
-      <div class="ob-features">
-        <div class="ob-feature-item" style="border-color:rgba(0,229,160,0.25);background:rgba(0,229,160,0.04)">
-          <div class="ob-feature-icon" style="background:rgba(0,229,160,0.15)">💡</div>
-          <div class="ob-feature-text">
-            <div class="ob-feature-title" style="color:var(--accent)">Tips Pertama</div>
-            <div class="ob-feature-desc">Buka tab Analisis → isi berat, tinggi, usia, gender, aktivitas → tap Analisis Sekarang</div>
-          </div>
-        </div>
-        <div class="ob-feature-item" style="border-color:rgba(0,180,245,0.2);background:rgba(0,180,245,0.04)">
-          <div class="ob-feature-icon" style="background:rgba(0,180,245,0.12)">📖</div>
-          <div class="ob-feature-text">
-            <div class="ob-feature-title" style="color:var(--accent2)">Butuh Bantuan?</div>
-            <div class="ob-feature-desc">Buka panduan lengkap kapan saja via Profile → Panduan Penggunaan</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-  </div><!-- /ob-slides -->
-
-  <!-- Bottom -->
-  <div class="ob-bottom">
-    <div class="ob-step-counter" id="ob-step-counter">1 / 6</div>
-    <div class="ob-btn-row">
-      <button class="ob-btn-skip" id="ob-btn-skip" onclick="obSkip()">Lewati</button>
-      <button class="ob-btn-next" id="ob-btn-next" onclick="obNext()">Lanjut →</button>
-    </div>
-  </div>
-</div><!-- /onboarding-overlay -->
-
-
-<!-- ══════════════════════════════════════════
-     PANDUAN PAGE
-══════════════════════════════════════════ -->
-<div id="panduan-page">
-  <!-- Topbar -->
+  <!-- TOPBAR -->
   <div class="pd-topbar">
     <span class="pd-logo">SmartMeal</span>
     <a class="pd-back-btn" href="javascript:history.back()" id="pd-back-btn">← Kembali</a>
   </div>
 
   <div class="pd-content">
-    <!-- Hero -->
+
+    <!-- HERO -->
     <div class="pd-hero">
       <span class="pd-hero-icon">📖</span>
       <h1>Panduan <span class="grad-text">Penggunaan</span></h1>
       <p>Semua yang perlu kamu tahu untuk memaksimalkan SmartMeal.</p>
     </div>
 
-    <!-- ── MULAI ── -->
-    <div id="sec-mulai" class="pd-feature-section">
+    <!-- MEMULAI -->
+    <div class="pd-feature-section">
       <div class="pd-section-label">Memulai</div>
-
       <div class="pd-feature-card expanded" onclick="toggleCard(this)">
         <div class="pd-card-header">
           <div class="pd-card-icon green">🚀</div>
@@ -939,7 +432,7 @@
               <div class="pd-step-num">4</div>
               <div class="pd-step-content">
                 <div class="pd-step-title">Konfirmasi Makanan</div>
-                <div class="pd-step-desc">Buka detail makanan yang ingin kamu makan → tap "Konfirmasi Sudah Makan" untuk mencatat ke progress.</div>
+                <div class="pd-step-desc">Buka detail makanan → tap "Konfirmasi Sudah Makan" untuk mencatat ke progress.</div>
               </div>
             </div>
           </div>
@@ -951,10 +444,9 @@
       </div>
     </div>
 
-    <!-- ── HOME ── -->
-    <div id="sec-home" class="pd-feature-section">
+    <!-- HOME -->
+    <div class="pd-feature-section">
       <div class="pd-section-label">Tab Home</div>
-
       <div class="pd-feature-card" onclick="toggleCard(this)">
         <div class="pd-card-header">
           <div class="pd-card-icon green">🏠</div>
@@ -983,15 +475,8 @@
             <div class="pd-step">
               <div class="pd-step-num">3</div>
               <div class="pd-step-content">
-                <div class="pd-step-title">Lihat Rekomendasi</div>
-                <div class="pd-step-desc">Tap "Lihat Rekomendasi" untuk melihat daftar makanan yang sesuai dengan goal dan waktu makan pilihanmu.</div>
-              </div>
-            </div>
-            <div class="pd-step">
-              <div class="pd-step-num">4</div>
-              <div class="pd-step-content">
                 <div class="pd-step-title">Pilih Makanan</div>
-                <div class="pd-step-desc">Tap kartu makanan yang menarik untuk melihat detail nutrisi, kalori, dan saran porsi.</div>
+                <div class="pd-step-desc">Tap kartu makanan untuk melihat detail nutrisi, kalori, dan saran porsi.</div>
               </div>
             </div>
           </div>
@@ -1004,10 +489,9 @@
       </div>
     </div>
 
-    <!-- ── ANALISIS ── -->
-    <div id="sec-analisis" class="pd-feature-section">
+    <!-- ANALISIS -->
+    <div class="pd-feature-section">
       <div class="pd-section-label">Tab Analisis</div>
-
       <div class="pd-feature-card" onclick="toggleCard(this)">
         <div class="pd-card-header">
           <div class="pd-card-icon blue">🔬</div>
@@ -1037,7 +521,7 @@
               <div class="pd-step-num">3</div>
               <div class="pd-step-content">
                 <div class="pd-step-title">Tap Analisis Sekarang</div>
-                <div class="pd-step-desc">Data tersimpan otomatis. Hasilnya meliputi BMR, TDEE, target kalori harian, BMI, jadwal makan, dan rekomendasi makanan sesuai kondisi tubuhmu.</div>
+                <div class="pd-step-desc">Data tersimpan otomatis. Hasilnya meliputi BMR, TDEE, target kalori harian, BMI, jadwal makan, dan rekomendasi makanan.</div>
               </div>
             </div>
           </div>
@@ -1049,10 +533,9 @@
       </div>
     </div>
 
-    <!-- ── DETAIL MAKANAN ── -->
-    <div id="sec-detail" class="pd-feature-section">
+    <!-- DETAIL MAKANAN -->
+    <div class="pd-feature-section">
       <div class="pd-section-label">Detail Makanan</div>
-
       <div class="pd-feature-card" onclick="toggleCard(this)">
         <div class="pd-card-header">
           <div class="pd-card-icon orange">🍽️</div>
@@ -1068,7 +551,7 @@
               <div class="pd-step-num">1</div>
               <div class="pd-step-content">
                 <div class="pd-step-title">Lihat Info Nutrisi</div>
-                <div class="pd-step-desc">Di halaman detail kamu bisa melihat kalori, protein, lemak, karbohidrat, persentase makronutrien, dan kesesuaian dengan target kalori makan.</div>
+                <div class="pd-step-desc">Lihat kalori, protein, lemak, karbohidrat, persentase makronutrien, dan kesesuaian dengan target kalori makan.</div>
               </div>
             </div>
             <div class="pd-step">
@@ -1082,22 +565,21 @@
               <div class="pd-step-num">3</div>
               <div class="pd-step-content">
                 <div class="pd-step-title">Konfirmasi Sudah Makan</div>
-                <div class="pd-step-desc">Tap "✅ Konfirmasi Sudah Makan" untuk mencatat makanan ini ke progress harianmu. Tombol berubah hijau setelah berhasil dicatat.</div>
+                <div class="pd-step-desc">Tap "✅ Konfirmasi Sudah Makan" untuk mencatat makanan ini ke progress harianmu.</div>
               </div>
             </div>
           </div>
           <div class="pd-tip-box">
             <span class="pd-tip-icon">⚠️</span>
-            <span class="pd-tip-text">Membuka halaman detail otomatis mencatat ke <strong>Log/Riwayat</strong>. Tapi untuk mencatat ke <strong>Progress</strong>, kamu perlu tap tombol Konfirmasi.</span>
+            <span class="pd-tip-text">Membuka halaman detail otomatis mencatat ke <strong>Log/Riwayat</strong>. Untuk mencatat ke <strong>Progress</strong>, kamu perlu tap tombol Konfirmasi.</span>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- ── PROGRESS ── -->
-    <div id="sec-progress" class="pd-feature-section">
-      <div class="pd-section-label">Tab Progress</div>
-
+    <!-- PROGRESS -->
+    <div class="pd-feature-section">
+      <div class="pd-section-label">Progress</div>
       <div class="pd-feature-card" onclick="toggleCard(this)">
         <div class="pd-card-header">
           <div class="pd-card-icon green">📊</div>
@@ -1113,7 +595,7 @@
               <div class="pd-step-num">1</div>
               <div class="pd-step-content">
                 <div class="pd-step-title">Gunakan Filter Waktu & Goal</div>
-                <div class="pd-step-desc">Filter ⏱ untuk rentang waktu (Hari Ini / 7 Hari / 30 Hari / Semua) dan 🎯 untuk goal tertentu. Mempengaruhi Total Makanan, Konsistensi, dan daftar makanan.</div>
+                <div class="pd-step-desc">Filter ⏱ untuk rentang waktu (Hari Ini / 7 Hari / 30 Hari / Semua) dan 🎯 untuk goal tertentu.</div>
               </div>
             </div>
             <div class="pd-step">
@@ -1140,10 +622,9 @@
       </div>
     </div>
 
-    <!-- ── CHATBOT ── -->
-    <div id="sec-chat" class="pd-feature-section">
+    <!-- CHATBOT -->
+    <div class="pd-feature-section">
       <div class="pd-section-label">NutriBot AI</div>
-
       <div class="pd-feature-card" onclick="toggleCard(this)">
         <div class="pd-card-header">
           <div class="pd-card-icon blue">🤖</div>
@@ -1179,23 +660,15 @@
           </div>
           <div class="pd-tip-box">
             <span class="pd-tip-icon">⚠️</span>
-            <span class="pd-tip-text">NutriBot <strong>tidak bisa</strong> memberikan saran medis untuk kondisi penyakit tertentu. Konsultasikan ke dokter atau ahli gizi untuk kondisi medis.</span>
-          </div>
-          <div class="pd-tags">
-            <span class="pd-tag green">Tips diet</span>
-            <span class="pd-tag green">Kalori makanan</span>
-            <span class="pd-tag blue">Info protein</span>
-            <span class="pd-tag blue">Jadwal makan</span>
-            <span class="pd-tag orange">Gaya hidup sehat</span>
+            <span class="pd-tip-text">NutriBot <strong>tidak bisa</strong> memberikan saran medis untuk kondisi penyakit. Konsultasikan ke dokter atau ahli gizi untuk kondisi medis.</span>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- ── AR ── -->
-    <div id="sec-ar" class="pd-feature-section">
+    <!-- AR -->
+    <div class="pd-feature-section">
       <div class="pd-section-label">Fitur AR</div>
-
       <div class="pd-feature-card" onclick="toggleCard(this)">
         <div class="pd-card-header">
           <div class="pd-card-icon purple">📷</div>
@@ -1225,7 +698,7 @@
               <div class="pd-step-num">3</div>
               <div class="pd-step-content">
                 <div class="pd-step-title">Interaksi dengan Model 3D</div>
-                <div class="pd-step-desc">Drag untuk memutar model. Pinch (cubit) untuk zoom in/out. Label nutrisi akan muncul mengambang di sekitar model.</div>
+                <div class="pd-step-desc">Drag untuk memutar model. Pinch untuk zoom in/out. Label nutrisi akan muncul mengambang di sekitar model.</div>
               </div>
             </div>
           </div>
@@ -1237,10 +710,9 @@
       </div>
     </div>
 
-    <!-- ── LOG & RIWAYAT ── -->
+    <!-- LOG & RIWAYAT -->
     <div class="pd-feature-section">
       <div class="pd-section-label">Log & Riwayat</div>
-
       <div class="pd-feature-card" onclick="toggleCard(this)">
         <div class="pd-card-header">
           <div class="pd-card-icon orange">📋</div>
@@ -1263,14 +735,14 @@
               <div class="pd-step-num">2</div>
               <div class="pd-step-content">
                 <div class="pd-step-title">Gunakan Filter & Pencarian</div>
-                <div class="pd-step-desc">Filter berdasarkan Hari Ini, 7 Hari, atau Bulan Ini. Atau cari nama makanan/goal lewat kolom pencarian.</div>
+                <div class="pd-step-desc">Filter berdasarkan Hari Ini, 7 Hari, atau Bulan Ini. Atau cari nama makanan lewat kolom pencarian.</div>
               </div>
             </div>
             <div class="pd-step">
               <div class="pd-step-num">3</div>
               <div class="pd-step-content">
                 <div class="pd-step-title">Hapus Entri</div>
-                <div class="pd-step-desc">Hover atau tap item untuk melihat tombol ✕. Tap untuk menghapus entri tersebut dari riwayat.</div>
+                <div class="pd-step-desc">Tap tombol ✕ di item untuk menghapus entri tersebut dari riwayat.</div>
               </div>
             </div>
           </div>
@@ -1282,8 +754,8 @@
       </div>
     </div>
 
-    <!-- ── FAQ ── -->
-    <div id="sec-faq" class="pd-feature-section">
+    <!-- FAQ -->
+    <div class="pd-feature-section">
       <div class="pd-section-label">FAQ — Pertanyaan Umum</div>
 
       <div class="pd-faq-item" onclick="toggleFaq(this)">
@@ -1299,7 +771,7 @@
           <span class="pd-faq-q-text">Kenapa Progress Hari Ini tidak berubah saat filter diubah?</span>
           <span class="pd-faq-chevron">›</span>
         </div>
-        <div class="pd-faq-a">Ini disengaja. Kartu "Hari Ini" menampilkan TOTAL semua kalori yang dikonfirmasi hari ini tanpa filter, karena tubuh menyerap semua kalori terlepas dari goal label-nya. Filter hanya mempengaruhi Total Makanan, Konsistensi, dan grafik.</div>
+        <div class="pd-faq-a">Ini disengaja. Kartu "Hari Ini" menampilkan TOTAL semua kalori yang dikonfirmasi hari ini tanpa filter, karena tubuh menyerap semua kalori terlepas dari goal label-nya.</div>
       </div>
 
       <div class="pd-faq-item" onclick="toggleFaq(this)">
@@ -1307,7 +779,7 @@
           <span class="pd-faq-q-text">Mengapa NutriBot tidak bisa menjawab?</span>
           <span class="pd-faq-chevron">›</span>
         </div>
-        <div class="pd-faq-a">NutriBot membutuhkan koneksi ke server backend. Jika muncul pesan error, pastikan kamu terhubung ke internet dan server backend sedang berjalan. Coba refresh halaman dan kirim ulang pesan.</div>
+        <div class="pd-faq-a">NutriBot membutuhkan koneksi ke server backend. Pastikan kamu terhubung ke internet. Coba refresh halaman dan kirim ulang pesan.</div>
       </div>
 
       <div class="pd-faq-item" onclick="toggleFaq(this)">
@@ -1323,7 +795,7 @@
           <span class="pd-faq-q-text">Bagaimana cara mengubah target kalori?</span>
           <span class="pd-faq-chevron">›</span>
         </div>
-        <div class="pd-faq-a">Buka tab Analisis → ubah data tubuh atau tingkat aktivitas → tap "Analisis Sekarang". Target kalori akan otomatis diperbarui sesuai data baru. Kamu juga bisa mengubah goal di tab Home yang akan mempengaruhi penyesuaian kalori.</div>
+        <div class="pd-faq-a">Buka tab Analisis → ubah data tubuh atau tingkat aktivitas → tap "Analisis Sekarang". Target kalori akan otomatis diperbarui sesuai data baru.</div>
       </div>
 
       <div class="pd-faq-item" onclick="toggleFaq(this)">
@@ -1339,7 +811,7 @@
           <span class="pd-faq-q-text">Mengapa AR tidak berfungsi?</span>
           <span class="pd-faq-chevron">›</span>
         </div>
-        <div class="pd-faq-a">Pastikan browser kamu mengizinkan akses kamera. AR membutuhkan koneksi HTTPS (bukan HTTP). Jika muncul pesan "izin ditolak", buka pengaturan browser dan izinkan akses kamera untuk situs ini. AR juga hanya tersedia untuk makanan yang memiliki model 3D.</div>
+        <div class="pd-faq-a">Pastikan browser kamu mengizinkan akses kamera dan koneksi HTTPS aktif. Jika muncul pesan "izin ditolak", buka pengaturan browser dan izinkan akses kamera. AR hanya tersedia untuk makanan yang memiliki model 3D.</div>
       </div>
     </div>
 
@@ -1348,150 +820,28 @@
       <span class="pd-cta-icon">🚀</span>
       <h3>Siap Memulai?</h3>
       <p>Mulai perjalanan nutrisimu sekarang. Isi data tubuh di Analisis untuk hasil yang lebih akurat.</p>
-      <a class="pd-cta-btn" href="javascript:history.back()" id="pd-cta-back">← Kembali ke App</a>
+      <a class="pd-cta-btn" href="javascript:history.back()">← Kembali ke App</a>
     </div>
 
-  </div><!-- /pd-content -->
-</div><!-- /panduan-page -->
+  </div>
 
-
-<script>
-  /* ══════════════════════════════════════
-     ONBOARDING LOGIC
-  ══════════════════════════════════════ */
-  let obCurrentSlide = 0;
-  const OB_TOTAL = 6;
-
-  function obInit() {
-    renderObProgress();
-    updateObButtons();
-  }
-
-  function renderObProgress() {
-    const bar = document.getElementById("ob-progress-bar");
-    bar.innerHTML = "";
-    for (let i = 0; i < OB_TOTAL; i++) {
-      const dot = document.createElement("div");
-      dot.className = "ob-prog-dot";
-      if (i < obCurrentSlide) dot.classList.add("done");
-      else if (i === obCurrentSlide) dot.classList.add("active");
-      bar.appendChild(dot);
+  <script>
+    function toggleCard(card) {
+      const isExpanded = card.classList.contains("expanded");
+      document.querySelectorAll(".pd-feature-card.expanded").forEach(c => {
+        if (c !== card) c.classList.remove("expanded");
+      });
+      card.classList.toggle("expanded", !isExpanded);
     }
-    document.getElementById("ob-step-counter").textContent =
-      (obCurrentSlide + 1) + " / " + OB_TOTAL;
-  }
 
-  function updateObButtons() {
-    const skipBtn = document.getElementById("ob-btn-skip");
-    const nextBtn = document.getElementById("ob-btn-next");
-    const isLast = obCurrentSlide === OB_TOTAL - 1;
-    skipBtn.style.display = isLast ? "none" : "block";
-    nextBtn.textContent = isLast ? "🚀 Mulai Sekarang!" : "Lanjut →";
-  }
-
-  function obNext() {
-    if (obCurrentSlide < OB_TOTAL - 1) {
-      const currentEl = document.querySelector(".ob-slide.active");
-      currentEl.classList.remove("active");
-      currentEl.classList.add("exit-left");
-      setTimeout(() => currentEl.classList.remove("exit-left"), 400);
-
-      obCurrentSlide++;
-      const nextEl = document.querySelector(`[data-slide="${obCurrentSlide}"]`);
-      nextEl.classList.add("active");
-      renderObProgress();
-      updateObButtons();
-    } else {
-      obFinish();
+    function toggleFaq(item) {
+      const isExpanded = item.classList.contains("expanded");
+      document.querySelectorAll(".pd-faq-item.expanded").forEach(i => {
+        if (i !== item) i.classList.remove("expanded");
+      });
+      item.classList.toggle("expanded", !isExpanded);
     }
-  }
-
-  function obSkip() { obFinish(); }
-
-  function obFinish() {
-  const overlay = document.getElementById("onboarding-overlay");
-  overlay.style.opacity = "0";
-  overlay.style.transition = "opacity 0.4s ease";
-  setTimeout(() => {
-    overlay.classList.add("hidden");
-    overlay.style.opacity = "";
-    overlay.style.transition = "";
-  }, 400);
-  try { localStorage.setItem("sm_onboarding_done", "1"); } catch(e) {}
-  window.dispatchEvent(new CustomEvent("onboardingDone"));
-
-  // Tambahkan ini:
-  setTimeout(() => {
-    window.location.href = "WebApp.html";
-  }, 500);
-}
-
-  // ── Public API ──
-  window.SmartMeal = window.SmartMeal || {};
-
-  /**
-   * Panggil SmartMeal.showOnboarding() dari Main.js
-   * setelah registrasi berhasil untuk tampilkan onboarding.
-   */
-  window.SmartMeal.showOnboarding = function() {
-    obCurrentSlide = 0;
-    // Reset slides
-    document.querySelectorAll(".ob-slide").forEach((s, i) => {
-      s.classList.remove("active", "exit-left");
-      if (i === 0) s.classList.add("active");
-    });
-    obInit();
-    const overlay = document.getElementById("onboarding-overlay");
-    overlay.classList.remove("hidden");
-  };
-
-  /**
-   * Cek apakah onboarding sudah pernah ditampilkan.
-   * Return true jika belum, false jika sudah.
-   */
-  window.SmartMeal.shouldShowOnboarding = function() {
-    try { return !localStorage.getItem("sm_onboarding_done"); } catch(e) { return false; }
-  };
-
-  // Auto-init jika halaman dibuka langsung (bukan di-embed)
-  // dan query param ?onboarding=1 ada
-  const urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.get("onboarding") === "1") {
-    window.SmartMeal.showOnboarding();
-  }
-
-  obInit();
-
-  /* ══════════════════════════════════════
-     PANDUAN PAGE LOGIC
-  ══════════════════════════════════════ */
-  function toggleCard(card) {
-    const isExpanded = card.classList.contains("expanded");
-    // Tutup semua
-    document.querySelectorAll(".pd-feature-card.expanded").forEach(c => {
-      if (c !== card) c.classList.remove("expanded");
-    });
-    // Toggle yang diklik
-    card.classList.toggle("expanded", !isExpanded);
-  }
-
-  function toggleFaq(item) {
-    const isExpanded = item.classList.contains("expanded");
-    document.querySelectorAll(".pd-faq-item.expanded").forEach(i => {
-      if (i !== item) i.classList.remove("expanded");
-    });
-    item.classList.toggle("expanded", !isExpanded);
-  }
-
-  // Handle tombol kembali — jika dibuka sebagai halaman popup/iframe
-  // bisa di-override dari parent dengan window.SmartMeal.onBack
-  document.getElementById("pd-back-btn").addEventListener("click", e => {
-    if (window.SmartMeal.onBack) { e.preventDefault(); window.SmartMeal.onBack(); }
-  });
-  document.getElementById("pd-cta-back").addEventListener("click", e => {
-    if (window.SmartMeal.onBack) { e.preventDefault(); window.SmartMeal.onBack(); }
-  });
-</script>
+  </script>
 
 </body>
 </html>
