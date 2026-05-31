@@ -430,35 +430,6 @@
       background:var(--border);
     }
 
-    /* Quick nav pills */
-    .pd-nav-pills {
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-      margin-bottom:28px;
-    }
-    .pd-nav-pill {
-      background:var(--surface);
-      border:1px solid var(--border);
-      border-radius:50px;
-      padding:7px 14px;
-      font-family:"Syne",sans-serif;
-      font-size:11px;
-      font-weight:700;
-      color:var(--text-muted);
-      cursor:pointer;
-      transition:all 0.3s ease;
-      text-decoration:none;
-      display:inline-flex;
-      align-items:center;
-      gap:5px;
-    }
-    .pd-nav-pill:hover {
-      border-color:var(--accent);
-      color:var(--accent);
-      background:rgba(0,229,160,0.06);
-    }
-
     /* Feature cards */
     .pd-feature-section { margin-bottom:28px; }
 
@@ -926,19 +897,6 @@
       <span class="pd-hero-icon">📖</span>
       <h1>Panduan <span class="grad-text">Penggunaan</span></h1>
       <p>Semua yang perlu kamu tahu untuk memaksimalkan SmartMeal.</p>
-    </div>
-
-    <!-- Quick nav -->
-    <div class="pd-section-label">Navigasi Cepat</div>
-    <div class="pd-nav-pills">
-      <a class="pd-nav-pill" href="#sec-mulai">🚀 Mulai</a>
-      <a class="pd-nav-pill" href="#sec-home">🏠 Home</a>
-      <a class="pd-nav-pill" href="#sec-analisis">🔬 Analisis</a>
-      <a class="pd-nav-pill" href="#sec-detail">🍽️ Detail</a>
-      <a class="pd-nav-pill" href="#sec-progress">📊 Progress</a>
-      <a class="pd-nav-pill" href="#sec-chat">🤖 Chatbot</a>
-      <a class="pd-nav-pill" href="#sec-ar">📷 AR</a>
-      <a class="pd-nav-pill" href="#sec-faq">❓ FAQ</a>
     </div>
 
     <!-- ── MULAI ── -->
@@ -1524,20 +1482,6 @@
     });
     item.classList.toggle("expanded", !isExpanded);
   }
-
-  // Smooth scroll untuk nav pills
-  document.querySelectorAll(".pd-nav-pill").forEach(pill => {
-    pill.addEventListener("click", e => {
-      const href = pill.getAttribute("href");
-      if (href && href.startsWith("#")) {
-        e.preventDefault();
-        const target = document.querySelector(href);
-        if (target) {
-          target.scrollIntoView({ behavior: "smooth", block: "start" });
-        }
-      }
-    });
-  });
 
   // Handle tombol kembali — jika dibuka sebagai halaman popup/iframe
   // bisa di-override dari parent dengan window.SmartMeal.onBack
