@@ -684,9 +684,6 @@ async function doRegister() {
     await fsSetUser(cred.user.uid, { username, email, avatar: "👤", joined });
 
     showToast("Akun berhasil dibuat! 🎉", "success");
-    setTimeout(() => {
-      window.location.href = "panduan.html?onboarding=1";
-    }, 1000);
 
   } catch (e) {
     const msg =
@@ -2356,7 +2353,7 @@ function removeTypingIndicator() {
   if (t) t.remove();
 }
 
-const BACKEND_URL = "https://smart-meal-production.up.railway.app";
+const BACKEND_URL = "https://smart-meal-lac.vercel.app";
 
 async function sendChat() {
   if (isBotTyping) return;
@@ -2397,7 +2394,7 @@ Persona: antusias, supportif, dan berpengetahuan luas soal gizi.`;
     }));
 
   try {
-    const res = await fetch(`${BACKEND_URL}/chat`, {
+    const res = await fetch(`${BACKEND_URL}/api/chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ messages: apiMessages, systemPrompt }),
