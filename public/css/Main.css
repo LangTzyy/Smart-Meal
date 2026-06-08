@@ -42,6 +42,9 @@ body {
   font-family: "DM Sans", sans-serif;
   overflow-x: hidden;
   -webkit-text-size-adjust: 100%;
+  /* Percepat render teks */
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeSpeed;
 }
 
 body::before {
@@ -57,12 +60,19 @@ body::before {
       transparent 60%);
   pointer-events: none;
   z-index: 0;
+  /* Hindari repaint tiap scroll */
+  will-change: auto;
 }
 
 img,
 video {
   max-width: 100%;
   display: block;
+}
+
+/* Hapus 300ms tap delay di semua perangkat mobile */
+button, a, [onclick] {
+  touch-action: manipulation;
 }
 
 /* ══ UTILITY ══ */
@@ -183,7 +193,9 @@ video {
   border-radius: 50%;
   pointer-events: none;
   z-index: 0;
+  /* GPU acceleration untuk animasi float */
   will-change: transform;
+  filter: blur(60px);
 }
 
 .orb1 {
@@ -398,6 +410,8 @@ video {
 .content {
   flex: 1;
   padding: 24px 18px;
+  /* Optimalkan render konten yang off-screen */
+  content-visibility: auto;
   max-width: 520px;
   margin: 0 auto;
   width: 100%;

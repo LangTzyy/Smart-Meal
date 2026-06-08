@@ -1069,7 +1069,7 @@ function renderRiwayatItem(r) {
     </div>`;
   }
   return `<div class="riwayat-item">
-    <img src="${r.img}" class="riwayat-img" alt="${r.name}" onerror="this.style.display='none'">
+    <img src="${r.img}" class="riwayat-img" alt="${r.name}" loading="lazy" decoding="async" onerror="this.style.display='none'">
     <div class="riwayat-info">
       <div class="riwayat-name">${r.name}</div>
       <div class="riwayat-detail">🔥 ${r.calories} kcal · ${r.protein || 0}g protein</div>
@@ -1174,38 +1174,16 @@ function goToStep2() {
   s2.className = "slide-up";
 
   const h = new Date().getHours();
+  // Sederhanakan: 4 zona waktu makan
   let autoMeal, autoLabel, autoIcon;
-
-  if (h >= 6 && h < 9) {
-    autoMeal = "sarapan";
-    autoLabel = "Sarapan";
-    autoIcon = "🌅";
-  } else if (h >= 12 && h < 14) {
-    autoMeal = "siang";
-    autoLabel = "Makan Siang";
-    autoIcon = "☀️";
-  } else if (h >= 18 && h < 21) {
-    autoMeal = "malam";
-    autoLabel = "Makan Malam";
-    autoIcon = "🌙";
+  if (h >= 4 && h < 10) {
+    autoMeal = "sarapan"; autoLabel = "Sarapan"; autoIcon = "🌅";
+  } else if (h >= 10 && h < 15) {
+    autoMeal = "siang"; autoLabel = "Makan Siang"; autoIcon = "☀️";
+  } else if (h >= 15 && h < 21) {
+    autoMeal = "malam"; autoLabel = "Makan Malam"; autoIcon = "🌙";
   } else {
-    if (h < 6) {
-      autoMeal = "sarapan";
-      autoLabel = "Sarapan";
-      autoIcon = "🌅";
-    } else if (h >= 9 && h < 12) {
-      autoMeal = "siang";
-      autoLabel = "Makan Siang";
-      autoIcon = "☀️";
-    } else if (h >= 14 && h < 18) {
-      autoMeal = "malam";
-      autoLabel = "Makan Malam";
-      autoIcon = "🌙";
-    } else {
-      autoMeal = "sarapan";
-      autoLabel = "Sarapan";
-      autoIcon = "🌅";
-    }
+    autoMeal = "sarapan"; autoLabel = "Sarapan"; autoIcon = "🌅";
   }
 
   const badge = document.getElementById("meal-autodetect-text");
@@ -1266,7 +1244,7 @@ function goToResult() {
     .map(
       (f, i) => `
     <div class="food-card" onclick="openDetail(${i})">
-      <img class="food-img" src="${f.img}" alt="${f.name}" loading="lazy">
+      <img class="food-img" src="${f.img}" alt="${f.name}" loading="lazy" decoding="async">
       <div class="food-body">
         <div class="food-name">${f.name}</div>
         <div class="food-cal">🔥 ${f.calories} kcal</div>
@@ -2182,7 +2160,14 @@ async function toggleAR() {
       btn.style.background = "linear-gradient(135deg, #ff6b6b, #ff4757)";
       arActive = true;
     } catch (e) {
-      showToast("Izin kamera ditolak atau tidak tersedia", "error");
+      // Berikan pesan error yang lebih spesifik
+      if (e.name === "NotAllowedError") {
+        showToast("Akses kamera ditolak. Izinkan kamera di pengaturan browser!", "error");
+      } else if (e.name === "NotFoundError") {
+        showToast("Kamera tidak ditemukan di perangkat ini!", "error");
+      } else {
+        showToast("AR tidak bisa diaktifkan. Pastikan browser mendukung kamera!", "error");
+      }
     }
   } else {
     stopCamera();
@@ -2422,14 +2407,9 @@ Persona: antusias, supportif, dan berpengetahuan luas soal gizi.`;
   } catch (e) {
     removeTypingIndicator();
     const errTime = nowTime();
-    let errMsg =
-      "Maaf, koneksi AI bermasalah saat ini. Pastikan server backend sudah berjalan dan coba lagi! 🔄";
-    if (
-      e.message.includes("Failed to fetch") ||
-      e.message.includes("NetworkError")
-    ) {
-      errMsg =
-        "Tidak bisa terhubung ke server. Pastikan `node server.js` sudah berjalan di terminal! 🖥️";
+    let errMsg = "Maaf, NutriBot tidak bisa dijangkau saat ini. Coba lagi dalam beberapa saat! 🔄";
+    if (e.message.includes("Failed to fetch") || e.message.includes("NetworkError")) {
+      errMsg = "Koneksi internet bermasalah. Pastikan kamu terhubung ke internet lalu coba lagi! 📶";
     }
     appendMsgEl(errMsg, "bot", errTime);
     const errEntry = {
@@ -3095,6 +3075,14 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("auth-wrapper").style.display = "block";
   document.getElementById("app-wrapper").style.display = "none";
 
+  // Helper untuk sembunyikan loading screen
+  function hideAppLoading() {
+    const el = document.getElementById("app-loading");
+    if (!el) return;
+    el.style.opacity = "0";
+    setTimeout(() => el.remove(), 400);
+  }
+
   onAuthStateChanged(auth, async (user) => {
     if (user) {
       await loginSuccess(user);
@@ -3105,5 +3093,6 @@ document.addEventListener("DOMContentLoaded", () => {
       document.getElementById("app-wrapper").style.display = "none";
       showAuth("login-screen");
     }
+    hideAppLoading();
   });
 });

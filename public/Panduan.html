@@ -3,8 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#080c14" />
   <title>Panduan SmartMeal</title>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+  <!-- Preconnect untuk percepat font load -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <!-- Hanya load weight yang benar-benar dipakai -->
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet" />
   <style>
     :root {
       --bg: #080c14;
@@ -26,7 +31,11 @@
       color: var(--text);
       font-family: "DM Sans", sans-serif;
       overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeSpeed;
     }
+    /* Hapus 300ms tap delay mobile */
+    button, a, [onclick] { touch-action: manipulation; }
     body::before {
       content:"";
       position:fixed;
