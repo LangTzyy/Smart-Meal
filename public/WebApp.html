@@ -123,10 +123,246 @@
         padding: 16px 14px;
       }
     }
+
+    /* ══════════════════════════════════════
+       REGISTER SCREEN — responsif, tidak scroll
+    ══════════════════════════════════════ */
+    #register-screen .auth-inner {
+      padding: clamp(12px, 3vh, 28px) 16px;
+      justify-content: center;
+    }
+    #register-screen .auth-card {
+      padding: clamp(18px, 3vh, 28px) clamp(18px, 4vw, 32px);
+    }
+    #register-screen .auth-title {
+      font-size: clamp(18px, 4vw, 24px);
+      margin-bottom: 4px;
+    }
+    #register-screen .auth-sub {
+      font-size: clamp(12px, 2vw, 14px);
+      margin-bottom: clamp(12px, 2vh, 20px);
+    }
+    #register-screen .form-group {
+      margin-bottom: clamp(10px, 1.5vh, 16px);
+    }
+    #register-screen .form-label {
+      font-size: clamp(11px, 2vw, 13px);
+      margin-bottom: 5px;
+    }
+    #register-screen .form-input {
+      padding: clamp(9px, 1.5vh, 12px) 14px;
+      font-size: clamp(13px, 2vw, 15px);
+    }
+
+    /* ══════════════════════════════════════
+       ACTIVITY INFO POPUP
+    ══════════════════════════════════════ */
+    .activity-info-btn {
+      font-size: 15px;
+      cursor: pointer;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      opacity: 0.75;
+      transition: opacity 0.2s;
+      user-select: none;
+    }
+    .activity-info-btn:hover { opacity: 1; }
+
+    .activity-info-popup {
+      display: none;
+      background: rgba(8, 20, 45, 0.97);
+      border: 1px solid rgba(0, 229, 160, 0.2);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 12px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,229,160,0.08);
+      backdrop-filter: blur(12px);
+      animation: fadeInDown 0.2s ease forwards;
+    }
+    .activity-info-popup.show { display: block; }
+
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .activity-info-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .activity-info-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .activity-info-item:first-child { padding-top: 0; }
+
+    .activity-info-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+    .activity-info-title {
+      font-family: "Syne", sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      color: #00e5a0;
+      margin-bottom: 2px;
+    }
+    .activity-info-desc {
+      font-size: 12px;
+      color: rgba(240, 244, 255, 0.55);
+      line-height: 1.5;
+    }
+
+    /* ══════════════════════════════════════
+       BACK TO HOME LINK — inside card, bottom
+    ══════════════════════════════════════ */
+    /* Nol-kan padding bawah card agar jarak diatur sepenuhnya oleh link */
+    .auth-card:has(.auth-back-home) {
+      padding-bottom: 0;
+    }
+    .auth-back-home {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin-top: clamp(10px, 2vh, 18px);
+      width: 100%;
+      font-size: clamp(11px, 1.5vw, 13px);
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.4);
+      text-decoration: none;
+      transition: color 0.2s ease;
+      letter-spacing: 0.2px;
+      padding: clamp(12px, 1.8vh, 16px) 0;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .auth-back-home:hover {
+      color: rgba(0, 229, 160, 0.8);
+    }
+    .auth-back-home svg {
+      width: 13px;
+      height: 13px;
+      flex-shrink: 0;
+    }
+
+    /* ══════════════════════════════════════
+       WELCOME POPUP — setelah registrasi
+    ══════════════════════════════════════ */
+    #welcome-popup-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9000;
+      background: rgba(3, 10, 22, 0.82);
+      backdrop-filter: blur(6px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.35s ease;
+    }
+    #welcome-popup-overlay.show {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .welcome-popup-box {
+      background: linear-gradient(160deg, #0a1f38 0%, #061426 100%);
+      border: 1px solid rgba(0, 229, 160, 0.2);
+      border-radius: 24px;
+      padding: 36px 28px 28px;
+      max-width: 360px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 0 60px rgba(0, 229, 160, 0.12), 0 24px 48px rgba(0,0,0,0.5);
+      transform: translateY(24px) scale(0.97);
+      transition: transform 0.35s cubic-bezier(0.23, 1, 0.32, 1);
+    }
+    #welcome-popup-overlay.show .welcome-popup-box {
+      transform: translateY(0) scale(1);
+    }
+    .welcome-popup-title {
+      font-family: "Syne", sans-serif;
+      font-size: 22px;
+      font-weight: 800;
+      color: #e8f4ff;
+      margin-bottom: 10px;
+      letter-spacing: -0.3px;
+    }
+    .welcome-popup-title span {
+      background: linear-gradient(135deg, #00e5a0 0%, #00b4f5 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .welcome-popup-desc {
+      font-size: 14px;
+      color: rgba(200, 225, 255, 0.7);
+      line-height: 1.65;
+      margin-bottom: 24px;
+    }
+    .welcome-popup-desc strong {
+      color: #00e5a0;
+    }
+    .welcome-popup-btns {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .welcome-popup-btns .btn-panduan {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 13px 20px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #00e5a0, #00b4f5);
+      color: #030d1a;
+      font-weight: 700;
+      font-size: 14px;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      box-shadow: 0 4px 20px rgba(0,229,160,0.3);
+    }
+    .welcome-popup-btns .btn-panduan:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+    .welcome-popup-btns .btn-skip {
+      padding: 11px 20px;
+      border-radius: 14px;
+      background: transparent;
+      color: rgba(200, 225, 255, 0.5);
+      font-size: 13px;
+      font-weight: 500;
+      border: 1px solid rgba(255,255,255,0.08);
+      cursor: pointer;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .welcome-popup-btns .btn-skip:hover {
+      color: rgba(200, 225, 255, 0.8);
+      border-color: rgba(255,255,255,0.18);
+    }
   </style>
 </head>
 
 <body>
+  <!-- inject activity info popup toggle script -->
+  <script>
+    function toggleActivityInfo(e) {
+      e.stopPropagation();
+      const popup = document.getElementById('activity-info-popup');
+      if (!popup) return;
+      const isOpen = popup.classList.contains('show');
+      popup.classList.toggle('show', !isOpen);
+      if (!isOpen) {
+        setTimeout(() => document.addEventListener('click', function closePopup() {
+          popup.classList.remove('show');
+          document.removeEventListener('click', closePopup);
+        }), 10);
+      }
+    }
+  </script>
   <!-- Loading screen saat app pertama kali dimuat -->
   <div id="app-loading" style="
     position:fixed;inset:0;z-index:9999;
@@ -136,15 +372,34 @@
     transition:opacity 0.4s ease;
   ">
     <div style="
+      display:flex;align-items:center;gap:8px;
       font-family:'Syne',sans-serif;font-size:22px;font-weight:800;
       background:linear-gradient(135deg,#00e5a0,#00b4f5);
       -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-    ">SmartMeal</div>
+    "><img src="assets/image/logo2.png" alt="logo" style="width:28px;height:28px;object-fit:contain;flex-shrink:0;-webkit-text-fill-color:initial;">SmartMeal</div>
     <div style="width:36px;height:36px;border:3px solid rgba(0,229,160,0.15);border-top-color:#00e5a0;border-radius:50%;animation:spin 0.8s linear infinite;"></div>
     <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
   </div>
 
   <div class="toast" id="toast"></div>
+
+  <!-- ══════════════════════════════════════════ WELCOME POPUP ══ -->
+  <div id="welcome-popup-overlay">
+    <div class="welcome-popup-box">
+      <div class="welcome-popup-title">Akun Berhasil Dibuat! <span>✨</span></div>
+      <p class="welcome-popup-desc">
+        Selamat bergabung di <strong>AR Smart Meal</strong>! Sebelum mulai, kami sarankan kamu membaca <strong>Panduan Penggunaan</strong> agar pengalaman nutrisimu lebih optimal.
+      </p>
+      <div class="welcome-popup-btns">
+        <a href="Panduan.html" class="btn-panduan" target="_blank">
+          📖 Baca Panduan Sekarang
+        </a>
+        <button class="btn-skip" onclick="closeWelcomePopup()">
+          Lewati, langsung masuk →
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- ══════════════════════════════════════════ AUTH ══ -->
   <div id="auth-wrapper">
@@ -152,8 +407,7 @@
       <div class="auth-bg-orb orb1"></div>
       <div class="auth-bg-orb orb2"></div>
       <div class="auth-inner">
-        <div class="auth-logo">SmartMeal</div>
-        <div class="auth-tagline">AI-Powered Nutrition Planner</div>
+        <div class="auth-logo"><img src="assets/image/logo2.png" alt="logo" class="brand-logo-img">SmartMeal</div>
         <div class="auth-card">
           <h2 class="auth-title">Selamat Datang 👋</h2>
           <p class="auth-sub">
@@ -180,6 +434,12 @@
             Belum punya akun?
             <span onclick="showAuth('register-screen')">Daftar sekarang</span>
           </div>
+          <a href="index.html" class="auth-back-home">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+            Kembali ke Beranda
+          </a>
         </div>
       </div>
     </div>
@@ -188,15 +448,15 @@
       <div class="auth-bg-orb orb1"></div>
       <div class="auth-bg-orb orb2"></div>
       <div class="auth-inner">
-        <div class="auth-logo">SmartMeal</div>
-        <div class="auth-card">
+        <div class="auth-logo"><img src="assets/image/logo2.png" alt="logo" class="brand-logo-img">SmartMeal</div>
+        <div class="auth-card" style="max-width: 440px;">
           <h2 class="auth-title">Daftar Akun ✨</h2>
           <p class="auth-sub">
             Mulai perjalanan nutrisi personalmu hari ini.
           </p>
           <div class="form-group">
             <label class="form-label">Username</label>
-            <input class="form-input" id="reg-username" type="text" placeholder="Pilih username unikmu" />
+            <input class="form-input" id="reg-username" type="text" placeholder="Username unikmu" />
           </div>
           <div class="form-group">
             <label class="form-label">Email</label>
@@ -206,9 +466,7 @@
             <label class="form-label">Password</label>
             <div class="input-pw-wrap">
               <input class="form-input" id="reg-password" type="password" placeholder="Min. 6 karakter" />
-              <button class="pw-toggle" onclick="togglePw('reg-password', this)">
-                👁️
-              </button>
+              <button class="pw-toggle" onclick="togglePw('reg-password', this)">👁️</button>
             </div>
           </div>
           <div class="form-group">
@@ -216,9 +474,7 @@
             <div class="input-pw-wrap">
               <input class="form-input" id="reg-confirm" type="password" placeholder="Ulangi password"
                 onkeydown="if (event.key === 'Enter') doRegister();" />
-              <button class="pw-toggle" onclick="togglePw('reg-confirm', this)">
-                👁️
-              </button>
+              <button class="pw-toggle" onclick="togglePw('reg-confirm', this)">👁️</button>
             </div>
           </div>
           <button class="btn btn-primary" style="width: 100%; margin-top: 4px" onclick="doRegister()">
@@ -228,6 +484,12 @@
             Sudah punya akun?
             <span onclick="showAuth('login-screen')">Login di sini</span>
           </div>
+          <a href="index.html" class="auth-back-home">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+            Kembali ke Beranda
+          </a>
         </div>
       </div>
     </div>
@@ -237,7 +499,7 @@
   <div id="app-wrapper" style="display: none">
     <section class="section active" id="home-section">
       <div class="topbar">
-        <div class="logo">SmartMeal</div>
+        <div class="logo"><img src="assets/image/logo2.png" alt="logo" class="brand-logo-img">SmartMeal</div>
         <div class="topbar-right">
           <div class="topbar-greeting" id="topbar-greeting"></div>
           <div class="topbar-avatar" id="topbar-avatar" onclick="switchTab('profile')">
@@ -268,10 +530,6 @@
 
         <!-- Step 1: Pilih Goal -->
         <div id="home-step1">
-          <div class="hero-badge">
-            <div class="pulse-dot"></div>
-            AI-Powered Nutrition
-          </div>
           <h1>Rancang <span class="grad-text">Pola Makan</span> Idealmu</h1>
           <p class="sub">
             Pilih tujuan dan waktu makan, dapatkan rekomendasi personal.
@@ -314,7 +572,6 @@
             <div class="step-dot active"></div>
           </div>
           <div class="step-label">Langkah 2 — Waktu Makan</div>
-          <h2>Waktu Makan</h2>
           <p class="sub">
             Terdeteksi otomatis dari jam sekarang. Bisa diubah sesuai
             kebutuhan.
@@ -360,7 +617,7 @@
 
     <section class="section" id="result-section">
       <div class="topbar">
-        <div class="logo">SmartMeal</div>
+        <div class="logo"><img src="assets/image/logo2.png" alt="logo" class="brand-logo-img">SmartMeal</div>
         <div class="breadcrumb" id="result-breadcrumb"></div>
       </div>
       <div class="content wide">
@@ -384,7 +641,7 @@
     <!-- ══════════════════════════════════════════ ANALISIS ══ -->
     <section class="section" id="analisis-section">
       <div class="topbar">
-        <div class="logo">SmartMeal</div>
+        <div class="logo"><img src="assets/image/logo2.png" alt="logo" class="brand-logo-img">SmartMeal</div>
         <div class="breadcrumb">Analisis Tubuh</div>
       </div>
       <div class="content" id="analisis-content">
@@ -419,7 +676,34 @@
             </div>
           </div>
           <div class="form-group">
-            <label class="form-label">Tingkat Aktivitas</label>
+            <label class="form-label" style="display:flex;align-items:center;gap:6px;">
+              Tingkat Aktivitas
+              <span class="activity-info-btn" onclick="toggleActivityInfo(event)" title="Info tingkat aktivitas">ℹ️</span>
+            </label>
+            <!-- Popup info aktivitas -->
+            <div class="activity-info-popup" id="activity-info-popup">
+              <div class="activity-info-item">
+                <span class="activity-info-icon">🧘</span>
+                <div>
+                  <div class="activity-info-title">Ringan</div>
+                  <div class="activity-info-desc">Aktivitas minim, kebanyakan duduk/tiduran. Contoh: kerja kantoran tanpa olahraga.</div>
+                </div>
+              </div>
+              <div class="activity-info-item">
+                <span class="activity-info-icon">🚶</span>
+                <div>
+                  <div class="activity-info-title">Sedang</div>
+                  <div class="activity-info-desc">Olahraga ringan 3–5x seminggu atau pekerjaan yang cukup aktif bergerak.</div>
+                </div>
+              </div>
+              <div class="activity-info-item">
+                <span class="activity-info-icon">🏋️</span>
+                <div>
+                  <div class="activity-info-title">Berat</div>
+                  <div class="activity-info-desc">Olahraga intens 6–7x seminggu atau pekerjaan fisik berat seperti kuli/atlet.</div>
+                </div>
+              </div>
+            </div>
             <div class="radio-group" style="flex-wrap: wrap">
               <div class="radio-btn" id="an-radio-ringan" onclick="anSelectActivity('ringan')">
                 🧘 Ringan
@@ -457,7 +741,7 @@
 
     <section class="section" id="detail-section">
       <div class="topbar">
-        <div class="logo">SmartMeal</div>
+        <div class="logo"><img src="assets/image/logo2.png" alt="logo" class="brand-logo-img">SmartMeal</div>
         <div class="breadcrumb" id="detail-breadcrumb"></div>
       </div>
       <div class="content">
@@ -517,7 +801,7 @@
 
     <section class="section chatbot" id="chat-section">
       <div class="topbar">
-        <div class="logo">SmartMeal</div>
+        <div class="logo"><img src="assets/image/logo2.png" alt="logo" class="brand-logo-img">SmartMeal</div>
         <div class="breadcrumb">AI Assistant</div>
       </div>
       <div class="chat-wrapper">
@@ -565,14 +849,13 @@
 
     <section class="section" id="profile-section">
       <div class="topbar">
-        <div class="logo">SmartMeal</div>
+        <div class="logo"><img src="assets/image/logo2.png" alt="logo" class="brand-logo-img">SmartMeal</div>
         <div class="breadcrumb">Profile</div>
       </div>
       <div class="content" id="profile-main-view">
         <div class="profile-hero">
           <div class="profile-avatar-wrap">
             <div class="profile-avatar" id="profile-avatar-display">👤</div>
-            <div class="profile-avatar-badge">✏️</div>
           </div>
           <div class="profile-username" id="profile-username-display">-</div>
           <div class="profile-email-display" id="profile-email-display">
@@ -966,6 +1249,38 @@
     })();
   </script>
   <script type="module" src="js/Main.js"></script>
+
+  <script>
+    /* ══ WELCOME POPUP — muncul setelah registrasi berhasil ══ */
+    function showWelcomePopup() {
+      const overlay = document.getElementById("welcome-popup-overlay");
+      if (!overlay) return;
+      overlay.style.display = "flex";
+      // Tunggu satu frame agar transition berjalan
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => overlay.classList.add("show"));
+      });
+    }
+
+    function closeWelcomePopup() {
+      const overlay = document.getElementById("welcome-popup-overlay");
+      if (!overlay) return;
+      overlay.classList.remove("show");
+      overlay.addEventListener("transitionend", () => {
+        overlay.style.display = "none";
+      }, { once: true });
+    }
+
+    // Expose ke global agar bisa dipanggil dari Main.js maupun inline
+    window.showWelcomePopup = showWelcomePopup;
+    window.closeWelcomePopup = closeWelcomePopup;
+
+    // Patch doRegister: setelah registrasi sukses, tampilkan popup
+    // Main.js di-load sebagai module, jadi kita pakai event custom
+    document.addEventListener("smartmeal:registered", () => {
+      showWelcomePopup();
+    });
+  </script>
 </body>
 
 </html>

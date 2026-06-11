@@ -166,7 +166,7 @@ button, a, [onclick] {
 }
 
 /* ══════════════════════════════════════════════════
-   AUTH SCREENS
+   AUTH SCREENS — No-scroll, fits all devices
    ══════════════════════════════════════════════════ */
 #auth-wrapper {
   position: fixed;
@@ -193,7 +193,6 @@ button, a, [onclick] {
   border-radius: 50%;
   pointer-events: none;
   z-index: 0;
-  /* GPU acceleration untuk animasi float */
   will-change: transform;
   filter: blur(60px);
 }
@@ -216,35 +215,48 @@ button, a, [onclick] {
   animation: orbFloat 10s ease-in-out infinite reverse;
 }
 
+/* Inner: isi penuh viewport, tengah vertikal */
 .auth-inner {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 15px 20px;
+  padding: clamp(12px, 3vh, 32px) clamp(16px, 4vw, 32px);
   position: relative;
   z-index: 1;
   width: 100%;
-  gap: 2px;
+  height: 100%;
+  gap: clamp(2px, 0.8vh, 8px);
 }
 
 .auth-logo {
   font-family: "Syne", sans-serif;
   font-weight: 800;
-  font-size: clamp(22px, 6vw, 28px);
+  font-size: clamp(18px, 3.5vw, 26px);
   background: linear-gradient(135deg, var(--accent), var(--accent2));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  margin-bottom: 3px;
+  margin-bottom: clamp(1px, 0.4vh, 4px);
   letter-spacing: -1px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.brand-logo-img {
+  width: clamp(22px, 3vw, 28px);
+  height: clamp(22px, 3vw, 28px);
+  object-fit: contain;
+  flex-shrink: 0;
+  filter: drop-shadow(0 2px 6px rgba(0, 229, 160, 0.25));
 }
 
 .auth-tagline {
-  font-size: 12px;
+  font-size: clamp(10px, 1.5vw, 12px);
   color: var(--text-muted);
-  margin-bottom: 16px;
+  margin-bottom: clamp(6px, 1.2vh, 14px);
   letter-spacing: 0.5px;
   font-weight: 500;
 }
@@ -252,35 +264,53 @@ button, a, [onclick] {
 .auth-card {
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid var(--border);
-  border-radius: 24px;
-  padding: 15px 10px;
+  border-radius: clamp(16px, 2vw, 24px);
+  padding: clamp(24px, 4vh, 40px) clamp(20px, 3vw, 36px);
   width: 100%;
-  max-width: 400px;
+  max-width: 440px;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   box-shadow: 0 24px 80px rgba(0, 0, 0, 0.4);
 }
 
+/* Register card lebih lebar dan tinggi */
+#register-screen .auth-card {
+  max-width: 640px;
+  padding: clamp(28px, 4.5vh, 44px) clamp(28px, 4vw, 48px);
+}
+
+/* Register form — 2 kolom di semua device kecuali hp kecil */
+.reg-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 clamp(8px, 1.5vw, 16px);
+}
+@media (max-width: 400px) {
+  .reg-form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .auth-title {
   font-family: "Syne", sans-serif;
-  font-size: clamp(17px, 4vw, 20px);
+  font-size: clamp(15px, 2.5vw, 20px);
   font-weight: 800;
-  margin-bottom: 4px;
+  margin-bottom: clamp(4px, 0.8vh, 8px);
   text-align: center;
 }
 
 .auth-sub {
-  font-size: 13px;
+  font-size: clamp(11px, 1.5vw, 13px);
   color: var(--text-muted);
-  margin-bottom: 16px;
+  margin-bottom: clamp(12px, 2vh, 20px);
   line-height: 1.5;
   text-align: center;
 }
 
 .auth-switch {
   text-align: center;
-  margin-top: 14px;
-  font-size: 13px;
+  margin-top: clamp(8px, 1.2vh, 14px);
+  font-size: clamp(11px, 1.5vw, 13px);
   color: var(--text-muted);
 }
 
@@ -345,6 +375,9 @@ button, a, [onclick] {
   background-clip: text;
   letter-spacing: -0.5px;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
 }
 
 .topbar-right {
@@ -648,15 +681,15 @@ h2 {
 
 /* ══ FORMS ══ */
 .form-group {
-  margin-bottom: 12px;
+  margin-bottom: clamp(10px, 1.8vh, 16px);
 }
 
 .form-label {
   display: block;
-  font-size: 11px;
+  font-size: clamp(9px, 1.2vw, 11px);
   font-weight: 600;
   color: var(--text-muted);
-  margin-bottom: 7px;
+  margin-bottom: clamp(5px, 0.8vh, 8px);
   text-transform: uppercase;
   letter-spacing: 1px;
 }
@@ -666,11 +699,11 @@ h2 {
   max-width: 100%;
   background: var(--surface2);
   border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 13px 18px;
+  border-radius: clamp(10px, 1.5vw, 14px);
+  padding: clamp(11px, 1.8vh, 15px) clamp(14px, 1.8vw, 20px);
   color: var(--text);
   font-family: "DM Sans", sans-serif;
-  font-size: max(16px, 15px);
+  font-size: max(16px, 14px);
   transition: var(--transition);
   outline: none;
 }

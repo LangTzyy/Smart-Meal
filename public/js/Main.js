@@ -684,6 +684,8 @@ async function doRegister() {
     await fsSetUser(cred.user.uid, { username, email, avatar: "👤", joined });
 
     showToast("Akun berhasil dibuat! 🎉", "success");
+    // Tampilkan welcome popup yang mengarahkan ke panduan
+    document.dispatchEvent(new CustomEvent("smartmeal:registered"));
 
   } catch (e) {
     const msg =

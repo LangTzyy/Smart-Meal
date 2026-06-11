@@ -77,6 +77,16 @@
       -webkit-background-clip:text;
       -webkit-text-fill-color:transparent;
       background-clip:text;
+      display:inline-flex;
+      align-items:center;
+      gap:7px;
+    }
+    .pd-logo-img {
+      width:24px;
+      height:24px;
+      object-fit:contain;
+      flex-shrink:0;
+      filter:drop-shadow(0 2px 6px rgba(0,229,160,0.25));
     }
     .pd-back-btn {
       display:flex;
@@ -375,6 +385,25 @@
     }
     .pd-cta-btn:hover { transform:translateY(-2px); box-shadow:0 8px 28px rgba(0,229,160,0.45); }
 
+    .pd-back-to-app {
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      margin-top:12px;
+      font-size:13px;
+      font-weight:500;
+      color:rgba(200,225,255,0.5);
+      text-decoration:none;
+      border:1px solid rgba(255,255,255,0.08);
+      border-radius:50px;
+      padding:8px 18px;
+      transition:all 0.2s ease;
+    }
+    .pd-back-to-app:hover {
+      color:rgba(200,225,255,0.85);
+      border-color:rgba(255,255,255,0.18);
+    }
+
     /* SCROLLBAR */
     ::-webkit-scrollbar { width:4px; }
     ::-webkit-scrollbar-track { background:transparent; }
@@ -389,8 +418,8 @@
 
   <!-- TOPBAR -->
   <div class="pd-topbar">
-    <span class="pd-logo">SmartMeal</span>
-    <a class="pd-back-btn" href="javascript:history.back()" id="pd-back-btn">← Kembali</a>
+    <span class="pd-logo"><img src="assets/image/logo2.png" alt="logo" class="pd-logo-img">SmartMeal</span>
+    <a class="pd-back-btn" href="WebApp.html">← Kembali</a>
   </div>
 
   <div class="pd-content">
@@ -829,7 +858,7 @@
       <span class="pd-cta-icon">🚀</span>
       <h3>Siap Memulai?</h3>
       <p>Mulai perjalanan nutrisimu sekarang. Isi data tubuh di Analisis untuk hasil yang lebih akurat.</p>
-      <a class="pd-cta-btn" href="javascript:history.back()">← Kembali ke App</a>
+      <a class="pd-cta-btn" href="WebApp.html">Mulai Sekarang →</a>
     </div>
 
   </div>
