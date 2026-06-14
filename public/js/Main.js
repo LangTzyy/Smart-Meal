@@ -2099,14 +2099,23 @@ async function toggleAR() {
 
         const mv = document.createElement("model-viewer");
         mv.id = "model-3d";
-        mv.setAttribute("src", modelPath);
         mv.setAttribute("alt", "Model 3D Makanan");
         mv.setAttribute("auto-rotate", "");
         mv.setAttribute("camera-controls", "");
         mv.setAttribute("shadow-intensity", "1");
+        mv.setAttribute("loading", "eager");      // ← tambah ini
+        mv.setAttribute("reveal", "auto");        // ← tambah ini
         mv.style.cssText =
           "width:100%;height:100%;background:transparent;position:absolute;top:0;left:0;z-index:10;";
+
+        // Append dulu, tampilkan container dulu, BARU set src
         container.appendChild(mv);
+        container.style.display = "block";        // visible dulu
+
+        // Tunggu satu frame agar elemen masuk viewport
+        requestAnimationFrame(() => {
+          mv.setAttribute("src", modelPath);      // ← src diset BELAKANGAN
+        });
 
         const f = state.currentFood;
         if (f) {
@@ -2153,7 +2162,6 @@ async function toggleAR() {
           });
         }
 
-        container.style.display = "block";
         document.getElementById("ar-hint").textContent =
           "🤚 Drag untuk putar model • Pinch untuk zoom";
       }
