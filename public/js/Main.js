@@ -58,7 +58,7 @@ const foodData = [
     carbs: 42,
     type: "diet",
     meal: "sarapan",
-    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Bubur_ayam_chicken_porridge.JPG/800px-Bubur_ayam_chicken_porridge.JPG",
+    img: "https://assets-src.ajinomoto.co.id/uploads/visit/2024/06/27/images/bubur-ayam-chinese-resep._c29d2308cd3e0c6d39e8f7318b30c0e9.png",
     desc: "Bubur nasi lembut dengan suwiran ayam kampung, bawang goreng, daun bawang, dan kerupuk. Mudah dicerna dan cocok sebagai sarapan hangat yang ringan namun mengenyangkan.",
     labels: ["Light Meal", "Easy Digest", "Indonesian"],
   },
@@ -70,7 +70,7 @@ const foodData = [
     carbs: 26,
     type: "diet",
     meal: "sarapan",
-    img: "https://images.pexels.com/photos/12042071/pexels-photo-12042071.jpeg?auto=compress&cs=tinysrgb&w=400",
+    img: "https://e7.pngegg.com/pngimages/566/649/png-clipart-milk-greek-yogurt-yoghurt-soy-yogurt-food-curd-cream-food.png",
     desc: "Yogurt rendah lemak dengan topping buah segar seperti stroberi, pisang, dan kiwi. Kaya probiotik dan kalsium untuk mendukung kesehatan pencernaan dan imunitas tubuh.",
     labels: ["Low Calorie", "Probiotic", "High Calcium"],
   },
@@ -82,7 +82,7 @@ const foodData = [
     carbs: 42,
     type: "diet",
     meal: "sarapan",
-    img: "https://images.unsplash.com/photo-1568158879083-c42860933ed7?w=400&q=80",
+    img: "https://storage.googleapis.com/bakingworld-web-production/uploads/media/content_banner/shutterstock_1955049547-1681812472912.jpg",
     desc: "Campuran buah segar seperti semangka, melon, anggur, kiwi, dan stroberi dengan taburan biji chia dan perasan lemon. Rendah kalori, tinggi vitamin C dan antioksidan, cocok untuk awali hari dengan ringan dan segar.",
     labels: ["Low Calorie", "High Vitamin", "Refreshing"],
   },
@@ -103,16 +103,28 @@ const foodData = [
     labels: ["Low Fat", "High Fiber", "Plant Protein"],
   },
   {
-    name: "Soto Ayam Bening",
+    name: "Soto Ayam",
     calories: 310,
     protein: 24,
     fat: 8,
     carbs: 30,
     type: "diet",
     meal: "siang",
-    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Soto_Ayam_Ambengan.jpg/800px-Soto_Ayam_Ambengan.jpg",
+    img: "https://assets.telkomsel.com/public/2024-04/w3%20april-3278.png",
     desc: "Soto bening ayam kampung dengan bihun, kubis, tauge, dan telur rebus. Kuah bening rendah lemak namun kaya rempah, cocok untuk makan siang diet yang mengenyangkan.",
     labels: ["Low Fat", "Light Meal", "Indonesian"],
+  },
+  {
+    name: "Sup Jagung",
+    calories: 265,
+    protein: 18,
+    fat: 6,
+    carbs: 32,
+    type: "diet",
+    meal: "siang",
+    img: "https://w7.pngwing.com/pngs/61/436/png-transparent-corn-chowder-corn-soup-squash-soup-french-onion-soup-pumpkin-shrimp-and-pumpkin-soup-soup-food-animals.png",
+    desc: "Sup jagung manis dengan potongan wortel, dan telur kocok dalam kaldu bening rendah lemak. Hangat, mengenyangkan, dan rendah kalori — cocok untuk makan siang diet yang menyehatkan.",
+    labels: ["Low Fat", "Low Calorie", "Indonesian"],
   },
 
   // ═══════════════════════════════════════
@@ -126,7 +138,7 @@ const foodData = [
     carbs: 22,
     type: "diet",
     meal: "malam",
-    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Pecel_lele.jpg/800px-Pecel_lele.jpg",
+    img: "https://png.pngtree.com/png-vector/20250714/ourlarge/pngtree-pecel-lele---indonesian-fried-catfish-with-sambal-png-image_16767052.webp",
     desc: "Lele goreng bumbu rempah disajikan dengan sambal tomat, lalapan segar timun dan kemangi, tanpa nasi untuk versi diet. Tinggi protein dan omega-3 dari ikan lele segar.",
     labels: ["High Protein", "Omega-3", "Indonesian"],
   },
@@ -138,9 +150,21 @@ const foodData = [
     carbs: 24,
     type: "diet",
     meal: "malam",
-    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Cap_cay.jpg/800px-Cap_cay.jpg",
+    img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQJcczomWgtmhXy1Aa2b-OkxpVUqQ6c1i-BTw&s",
     desc: "Tumis aneka sayuran seperti wortel, brokoli, bakso ayam, dan jamur dalam kuah ringan. Sangat rendah kalori dan kaya serat, ideal untuk makan malam diet yang ringan.",
     labels: ["Low Calorie", "High Fiber", "Light Meal"],
+  },
+  {
+    name: "Roti Bakar",
+    calories: 245,
+    protein: 14,
+    fat: 8,
+    carbs: 28,
+    type: "diet",
+    meal: "malam",
+    img: "https://i.gojekapi.com/darkroom/gofood-indonesia/v2/images/uploads/62ce2182-7aae-4aea-8838-f65f6fb86bdd_Go-Biz_20231228_120110.jpeg",
+    desc: "Dua lembar roti gandum panggang. Ringan namun mengenyangkan, rendah kalori dan kaya protein — pilihan makan malam diet yang praktis dan bergizi.",
+    labels: ["Low Calorie", "High Protein", "Light Meal"],
   },
 
   // ═══════════════════════════════════════
@@ -158,6 +182,30 @@ const foodData = [
     desc: "Pancake fluffy dari pisang matang, oat, telur, dan susu rendah lemak. Manis alami tanpa gula tambahan, tinggi protein dan karbohidrat kompleks untuk energi tahan lama.",
     labels: ["High Protein", "Natural Sweet", "Energizing"],
   },
+  {
+    name: "Sandwich Telur",
+    calories: 340,
+    protein: 18,
+    fat: 12,
+    carbs: 36,
+    type: "healthy",
+    meal: "sarapan",
+    img: "https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=400&q=80",
+    desc: "Roti gandum panggang dengan isian telur dadar, keju slice, selada, tomat, dan saus mustard rendah kalori. Sarapan praktis tinggi protein dan serat yang mengenyangkan sepanjang pagi.",
+    labels: ["High Protein", "Balanced", "Whole Grain"],
+  },
+  {
+    name: "Burger Ayam",
+    calories: 420,
+    protein: 30,
+    fat: 14,
+    carbs: 42,
+    type: "healthy",
+    meal: "sarapan",
+    img: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&q=80",
+    desc: "Burger dengan patty ayam panggang, selada renyah, tomat segar, acar, dan saus yogurt rendah lemak dalam roti gandum. Alternatif burger sehat tinggi protein tanpa gorengan berlebih.",
+    labels: ["High Protein", "Balanced", "Grilled"],
+  },
 
   // ═══════════════════════════════════════
   // HEALTHY — SIANG
@@ -170,7 +218,7 @@ const foodData = [
     carbs: 40,
     type: "healthy",
     meal: "siang",
-    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Ayam_penyet.jpg/800px-Ayam_penyet.jpg",
+    img: "https://i.pinimg.com/736x/40/92/66/409266e2437e34db31ca3a4edf36ee1c.jpg",
     desc: "Ayam goreng berbumbu rempah yang dipenyet lalu disajikan dengan sambal terasi pedas, nasi merah, tahu, tempe, dan lalapan segar. Menu tinggi protein khas Indonesia.",
     labels: ["High Protein", "Spicy", "Indonesian"],
   },
@@ -182,20 +230,8 @@ const foodData = [
     carbs: 36,
     type: "healthy",
     meal: "siang",
-    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6d/Ayam_betutu.jpg/800px-Ayam_betutu.jpg",
+    img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQKIzYNrbG1HGFUVtaemGhyiUd-GrNpmbWNHg&s",
     desc: "Ayam berbumbu rempah khas disajikan dengan urap sayuran segar yang dilumuri kelapa parut dan bumbu. Perpaduan protein tinggi dari ayam dan serat dari sayuran yang menyegarkan.",
-    labels: ["High Protein", "Balanced", "Indonesian"],
-  },
-  {
-    name: "Sate Ayam",
-    calories: 420,
-    protein: 36,
-    fat: 14,
-    carbs: 30,
-    type: "healthy",
-    meal: "siang",
-    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Sate_ayam_Madura.jpg/800px-Sate_ayam_Madura.jpg",
-    desc: "Sate ayam bakar dengan saus kacang khas, lontong, irisan bawang merah, dan cabai rawit. Sumber protein tinggi dengan karbohidrat seimbang dari lontong.",
     labels: ["High Protein", "Balanced", "Indonesian"],
   },
   {
@@ -206,7 +242,7 @@ const foodData = [
     carbs: 56,
     type: "healthy",
     meal: "siang",
-    img: "https://images.unsplash.com/photo-1473093295043-cdd812d0e601?w=400&q=80",
+    img: "https://images.rawpixel.com/image_png_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIzLTA5L3Jhd3BpeGVsb2ZmaWNlMThfcGhvdG9fb2ZfYV9tZWF0YmFsbHNfc3BhZ2hldHRpX3RvcF92aWV3X2lzb2xhdF9kMmNlNWE5NC01MzBlLTQ2NmYtOWUxNC01NWY2M2E4Yzc2NDgucG5n.png",
     desc: "Pasta gandum utuh dengan saus pesto basil segar, cherry tomato, dan parmesan. Sumber karbohidrat kompleks dan lemak sehat dari minyak zaitun pilihan.",
     labels: ["Whole Grain", "Balanced", "Mediterranean"],
   },
@@ -234,7 +270,7 @@ const foodData = [
     carbs: 38,
     type: "healthy",
     meal: "malam",
-    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/81/Bakso_Boedjangan%2C_Kemang%2C_Jakarta.jpg/800px-Bakso_Boedjangan%2C_Kemang%2C_Jakarta.jpg",
+    img: "https://i0.wp.com/zaloraadmin.wpcomstaging.com/wp-content/uploads/2024/07/resep-kuah-bakso.png?fit=1200%2C620&ssl=1",
     desc: "Bakso sapi kenyal dalam kuah kaldu bening dengan mie, tahu, sayuran, dan taburan bawang goreng. Menu malam yang hangat, mengenyangkan, dan bergizi seimbang.",
     labels: ["Balanced", "Light Meal", "Indonesian"],
   },
@@ -246,9 +282,49 @@ const foodData = [
     carbs: 22,
     type: "healthy",
     meal: "malam",
-    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7d/Sop_buntut.jpg/800px-Sop_buntut.jpg",
+    img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRTavdKLFKM1DBmEHrBhLEhFp6sIbfEJ1Grsg&s",
     desc: "Sup ayam kampung bening dengan wortel, kentang, seledri, dan daun bawang. Kuah gurih alami kaya kolagen dan protein, cocok untuk makan malam sehat dan hangat.",
     labels: ["High Protein", "Light Meal", "Indonesian"],
+  },
+
+  // ═══════════════════════════════════════
+  // BULKING — SARAPAN
+  // ═══════════════════════════════════════
+  {
+    name: "Pancake Stack",
+    calories: 680,
+    protein: 18,
+    fat: 22,
+    carbs: 102,
+    type: "bulking",
+    meal: "sarapan",
+    img: "https://static.vecteezy.com/system/resources/previews/025/229/680/non_2x/stack-of-tasty-pancakes-with-honey-on-transparent-background-png.png",
+    desc: "Tumpukan pancake tebal dengan saus coklat, irisan pisang, dan madu. Padat karbohidrat dan kalori tinggi — pilihan sarapan bulking yang mengenyangkan dan berenergi untuk memulai hari.",
+    labels: ["High Calorie", "High Carb", "Mass Build"],
+  },
+  {
+    name: "French Toast Stroberi",
+    calories: 590,
+    protein: 20,
+    fat: 18,
+    carbs: 84,
+    type: "bulking",
+    meal: "sarapan",
+    img: "https://images.unsplash.com/photo-1484723091739-30a097e8f929?w=400&q=80",
+    desc: "Roti tebal celup telur dan susu, dipanggang hingga keemasan, disajikan dengan stroberi segar dan blueberry. Kaya kalori, protein telur, dan karbohidrat — sarapan bulking bergaya yang tetap bergizi.",
+    labels: ["High Calorie", "High Protein", "Energizing"],
+  },
+  {
+    name: "Acai Granola Bowl",
+    calories: 520,
+    protein: 14,
+    fat: 16,
+    carbs: 80,
+    type: "bulking",
+    meal: "sarapan",
+    img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSUOAgUSfDL_wYSZ1pw2BkCatvoRZNE2iQRRQ&s",
+    desc: "Mangkuk acai dingin dengan topping granola renyah, pisang, stroberi, blueberry, dan madu. Padat karbohidrat dan antioksidan — sarapan bulking yang menyegarkan sekaligus berkalori tinggi.",
+    labels: ["High Calorie", "High Carb", "Mass Build"],
   },
 
   // ═══════════════════════════════════════
@@ -262,21 +338,33 @@ const foodData = [
     carbs: 85,
     type: "bulking",
     meal: "siang",
-    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Ayam_goreng_with_rice.jpg/800px-Ayam_goreng_with_rice.jpg",
+    img: "https://e7.pngegg.com/pngimages/450/999/png-clipart-plate-of-meal-nasi-lemak-iced-tea-tapa-breakfast-food-nasi-lemak-food-breakfast.png",
     desc: "Nasi putih pulen dengan ayam goreng crispy berbumbu, tempe goreng, sambal terasi, dan lalapan. Menu makan siang padat kalori dan protein tinggi khas Indonesia.",
     labels: ["High Calorie", "High Protein", "Indonesian"],
   },
   {
-    name: "Rendang + Nasi",
-    calories: 720,
-    protein: 45,
-    fat: 30,
-    carbs: 62,
+    name: "Burger + Wrap + Fries",
+    calories: 850,
+    protein: 38,
+    fat: 35,
+    carbs: 98,
     type: "bulking",
     meal: "siang",
-    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e2/Rendang_daging.JPG/800px-Rendang_daging.JPG",
-    desc: "Rendang daging sapi empuk kaya rempah santan dengan nasi putih hangat. Sumber protein premium dan kalori tinggi dari daging sapi dan santan, ideal untuk program bulking.",
-    labels: ["High Protein", "High Calorie", "Indonesian"],
+    img: "https://png.pngtree.com/png-vector/20201229/ourmid/pngtree-gourmet-fried-food-mcdonald-s-fast-food-combo-png-image_2665442.jpg",
+    desc: "Burger daging sapi dengan wrap ayam crispy dan kentang goreng renyah. Kombinasi padat kalori tinggi dari tiga menu sekaligus — ideal untuk makan siang bulking yang agresif dan mengenyangkan.",
+    labels: ["High Calorie", "High Protein", "Mass Build"],
+  },
+  {
+    name: "Steak Daging + Nasi",
+    calories: 860,
+    protein: 52,
+    fat: 32,
+    carbs: 88,
+    type: "bulking",
+    meal: "siang",
+    img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQJEd_l1snQ_LfG--nBgqXt6vUJ57Nnh6JJ0g&s",
+    desc: "Steak daging sapi panggang medium well dengan nasi putih hangat, saus lada hitam, dan tumis brokoli. Kombinasi protein premium dan karbohidrat tinggi yang ideal untuk program bulking intensif.",
+    labels: ["High Protein", "High Calorie", "Mass Build"],
   },
 
   // ═══════════════════════════════════════
@@ -290,30 +378,101 @@ const foodData = [
     carbs: 60,
     type: "bulking",
     meal: "malam",
-    img: "https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=400&q=80",
+    img: "https://cdn.shopify.com/s/files/1/0488/4473/4614/files/Protein_Shake_Image.png?v=1758681315",
     desc: "Smoothie tebal dari pisang, susu full cream, protein powder, selai kacang, dan oat. Minuman padat nutrisi untuk memenuhi kebutuhan kalori dan protein harian saat bulking.",
     labels: ["High Protein", "Mass Build", "Energy Dense"],
+  },
+  {
+    name: "Power Bowl Pisang",
+    calories: 580,
+    protein: 28,
+    fat: 14,
+    carbs: 82,
+    type: "bulking",
+    meal: "malam",
+    img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTR0b_vP4qerhXeSn4HFZCshamT0GSIyZhlDA&s",
+    desc: "Mangkuk oat hangat dengan pisang matang, selai kacang, granola renyah, madu, dan susu full cream. Padat karbohidrat dan kalori tinggi untuk mengisi energi dan membantu pertumbuhan massa otot semalaman.",
+    labels: ["High Calorie", "High Carb", "Mass Build"],
+  },
+  {
+    name: "Telur Rebus + Roti Gandum",
+    calories: 400,
+    protein: 24,
+    fat: 12,
+    carbs: 42,
+    type: "bulking",
+    meal: "malam",
+    img: "https://images.unsplash.com/photo-1482049016688-2d3e1b311543?w=400&q=80",
+    desc: "Tiga telur rebus matang dengan dua lembar roti gandum panggang dan selai kacang. Tinggi protein untuk muscle recovery semalaman, karbohidrat kompleks dari roti gandum yang mudah dicerna.",
+    labels: ["High Protein", "Mass Build", "Light Meal"],
   },
 ];
 
 // ─── MODEL 3D MAPPING ────────────────────────────────────────
 const foodModels = {
+
+  // ═══════════════════════════════════════
+  // DIET — SARAPAN
+  // ═══════════════════════════════════════
   "Bubur Ayam":             "assets/models/Bubur_Ayam.glb",
   "Yogurt Buah":            "assets/models/yogurt.glb",
-  "Pecel Lele":             "assets/models/Pecel-Lele.glb",
-  "Ayam Penyet":            "assets/models/ayam_penyet.glb",
-  "Nasi Putih Ayam Goreng": "assets/models/nasi_lemak.glb",
+  "Salad Buah":             "assets/models/salbu.glb",
+
+  // ═══════════════════════════════════════
+  // DIET — SIANG
+  // ═══════════════════════════════════════
   "Sup Sayuran Lentil":     "assets/models/Sup_Lentil.glb",
-  "Pancake Pisang Protein": "assets/models/Pancake.glb",
-  "Pasta Gandum Pesto":     "assets/models/pasta.glb",
-  "Grilled Chicken & Veggies": "assets/models/Grilled_Chicken.glb",
-  "Power Smoothie Protein": "assets/models/smoothie.glb",
-  "Bakso Kuah":             "assets/models/bakso.glb",
+  "Soto Ayam":              "assets/models/soto_jawa.glb",
+  "Sup Jagung":             "assets/models/sup_jagung.glb",
+
+  // ═══════════════════════════════════════
+  // DIET — MALAM
+  // ═══════════════════════════════════════
+  "Pecel Lele":             "assets/models/Pecel-Lele.glb",
   "Capcay Kuah":            "assets/models/capcay.glb",
-  "Rendang + Nasi":         "assets/models/makanan_rendang.glb",
-  "Soto Ayam Bening":       "assets/models/soto_jawa.glb",
+  "Roti Bakar":       "assets/models/toast.glb",
+
+  // ═══════════════════════════════════════
+  // HEALTHY — SARAPAN
+  // ═══════════════════════════════════════
+  "Pancake Pisang Protein": "assets/models/Pancake.glb",
+  "Sandwich Telur":         "assets/models/sandwich.glb",
+  "Burger Ayam":            "assets/models/burger.glb",
+
+  // ═══════════════════════════════════════
+  // HEALTHY — SIANG
+  // ═══════════════════════════════════════
+  "Ayam Penyet":            "assets/models/ayam_penyet.glb",
   "Ayam + Urap":            "assets/models/ayam_betutu.glb",
+  "Pasta Gandum Pesto":     "assets/models/pasta.glb",
+
+  // ═══════════════════════════════════════
+  // HEALTHY — MALAM
+  // ═══════════════════════════════════════
+  "Grilled Chicken & Veggies": "assets/models/Grilled_Chicken.glb",
+  "Bakso Kuah":             "assets/models/bakso.glb",
   "Sup Ayam Kampung":       "assets/models/sopbuntut.glb",
+
+  // ═══════════════════════════════════════
+  // BULKING — SARAPAN
+  // ═══════════════════════════════════════
+  "Pancake Stack":        "assets/models/pancake_stack.glb",  
+  "French Toast Stroberi": "assets/models/french_toast.glb",  
+  "Acai Granola Bowl":    "assets/models/acai_bowl.glb",      
+
+  // ═══════════════════════════════════════
+  // BULKING — SIANG
+  // ═══════════════════════════════════════
+  "Nasi Putih Ayam Goreng": "assets/models/nasi_lemak.glb",
+  "Burger + Wrap + Fries": "assets/models/burger_wrap_fries.glb", 
+  "Steak Daging + Nasi":    "assets/models/steak_nasi.glb",
+
+  // ═══════════════════════════════════════
+  // BULKING — MALAM
+  // ═══════════════════════════════════════
+  "Power Smoothie Protein": "assets/models/smoothie.glb",
+  "Power Bowl Pisang":      "assets/models/banana.glb",
+  "Telur Rebus + Roti Gandum": "assets/models/boiled_egg.glb", 
 };
 
 // ─── APP STATE ─────────────────────────────────────────────────
